@@ -6,13 +6,11 @@ import {
   Cairo_900Black,
   useFonts,
 } from "@expo-google-fonts/cairo";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { I18nManager, Platform, StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -26,8 +24,6 @@ if (Platform.OS !== "web") {
     I18nManager.forceRTL(false);
   } catch {}
 }
-
-const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   return (
@@ -62,16 +58,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-            <KeyboardProvider>
-              <VpnProvider>
-                <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-                <RootLayoutNav />
-              </VpnProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
+        <GestureHandlerRootView
+          style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+        >
+          <VpnProvider>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <RootLayoutNav />
+          </VpnProvider>
+        </GestureHandlerRootView>
       </ErrorBoundary>
     </SafeAreaProvider>
   );
