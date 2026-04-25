@@ -16,6 +16,14 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+- **nidaa-shield** (`artifacts/nidaa-shield`) — Expo mobile app "نداء شايلد".
+  - Arabic-only RTL UI, Cairo font, light mode only, white background.
+  - Glassmorphism mode cards (Smart Shield / Gaming Turbo / Family Guard / Military Privacy).
+  - Local-only state via AsyncStorage (no cloud).
+  - VPN engine logic stubbed at the React/AsyncStorage layer; native Android `VpnService` + DNS interception (port 53) must be implemented in native Android code outside Replit.
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

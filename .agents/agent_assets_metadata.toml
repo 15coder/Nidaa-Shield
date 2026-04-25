@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "Bexr1RF4CqUiwmiFdyqZW"
+uri = "file://artifacts/nidaa-shield/assets/images/icon.png"
+type = "image"
+title = "generated_image"
