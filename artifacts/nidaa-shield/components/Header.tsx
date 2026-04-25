@@ -1,6 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Image, Platform, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
@@ -10,18 +9,15 @@ export function Header() {
   const insets = useSafeAreaInsets();
 
   const topPad =
-    Platform.OS === "web" ? Math.max(insets.top, 24) : insets.top + 8;
+    Platform.OS === "web" ? Math.max(insets.top, 24) : insets.top + 6;
 
   return (
     <View style={[styles.wrap, { paddingTop: topPad }]}>
       <View style={styles.row}>
-        <View
-          style={[styles.brandMark, { borderColor: colors.cardBorder }]}
-        >
-          <Text style={[styles.brandLetter, { color: colors.foreground }]}>
-            ن
-          </Text>
-        </View>
+        <Image
+          source={require("../assets/images/icon.png")}
+          style={styles.logo}
+        />
         <View style={styles.titleWrap}>
           <Text style={[styles.title, { color: colors.foreground }]}>
             نداء شايلد
@@ -30,9 +26,16 @@ export function Header() {
             نظام الحماية المحلي
           </Text>
         </View>
-        <View style={styles.statusBadge}>
-          <Ionicons name="cloud-offline" size={14} color={colors.success} />
-          <Text style={[styles.statusBadgeText, { color: colors.success }]}>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: colors.primarySoft },
+          ]}
+        >
+          <View
+            style={[styles.statusDot, { backgroundColor: colors.primary }]}
+          />
+          <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
             محلي
           </Text>
         </View>
@@ -43,27 +46,17 @@ export function Header() {
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: 22,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
   row: {
     flexDirection: "row-reverse",
     alignItems: "center",
   },
-  brandMark: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    backgroundColor: "rgba(0,0,0,0.02)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brandLetter: {
-    fontFamily: "Cairo_900Black",
-    fontSize: 22,
-    lineHeight: 28,
-    marginTop: -2,
+  logo: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
   },
   titleWrap: {
     flex: 1,
@@ -72,25 +65,30 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 18,
+    fontSize: 17,
     textAlign: "right",
     writingDirection: "rtl",
+    lineHeight: 22,
   },
   subtitle: {
     fontFamily: "Cairo_500Medium",
     fontSize: 11,
-    marginTop: 1,
     textAlign: "right",
     writingDirection: "rtl",
+    lineHeight: 14,
   },
   statusBadge: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 5,
+    gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: "rgba(27,122,75,0.10)",
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   statusBadgeText: {
     fontFamily: "Cairo_700Bold",

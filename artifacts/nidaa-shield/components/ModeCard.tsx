@@ -25,13 +25,20 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   const colors = useColors();
   const pulse = useRef(new Animated.Value(1)).current;
   const press = useRef(new Animated.Value(1)).current;
+  const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    Animated.timing(glow, {
+      toValue: isActive ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+
     if (isActive) {
       const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulse, {
-            toValue: 1.08,
+            toValue: 1.1,
             duration: 1100,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
@@ -49,13 +56,13 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     } else {
       pulse.setValue(1);
     }
-  }, [isActive, pulse]);
+  }, [isActive, pulse, glow]);
 
   const handlePressIn = () => {
     Animated.spring(press, {
-      toValue: 0.97,
+      toValue: 0.98,
       useNativeDriver: true,
-      speed: 40,
+      speed: 50,
       bounciness: 0,
     }).start();
   };
@@ -63,7 +70,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     Animated.spring(press, {
       toValue: 1,
       useNativeDriver: true,
-      speed: 40,
+      speed: 50,
       bounciness: 6,
     }).start();
   };
@@ -75,19 +82,17 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     onPress();
   };
 
-  const tint = isActive ? "light" : "default";
-
   return (
     <Animated.View
       style={[
         styles.outer,
         {
           transform: [{ scale: press }],
-          shadowColor: isActive ? colors.cardActiveGlow : "#000",
-          shadowOpacity: isActive ? 0.55 : 0.06,
-          shadowRadius: isActive ? 22 : 12,
-          shadowOffset: { width: 0, height: isActive ? 8 : 4 },
-          elevation: isActive ? 12 : 4,
+          shadowColor: isActive ? colors.primaryGlow : "#000",
+          shadowOpacity: isActive ? 0.5 : 0.05,
+          shadowRadius: isActive ? 18 : 10,
+          shadowOffset: { width: 0, height: isActive ? 6 : 3 },
+          elevation: isActive ? 10 : 3,
         },
       ]}
     >
@@ -100,8 +105,8 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         style={styles.pressable}
       >
         <BlurView
-          intensity={isActive ? 65 : 35}
-          tint={tint}
+          intensity={isActive ? 70 : 30}
+          tint="light"
           style={[
             styles.card,
             {
@@ -111,106 +116,116 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
               borderColor: isActive
                 ? colors.cardActiveBorder
                 : colors.cardBorder,
+              borderWidth: isActive ? 1.5 : 1,
             },
           ]}
         >
-          {/* Subtle inner sheen on active */}
-          {isActive && (
-            <View
-              pointerEvents="none"
-              style={[
-                StyleSheet.absoluteFillObject,
-                {
-                  borderRadius: 32,
-                  backgroundColor: "rgba(255,255,255,0.35)",
-                },
-              ]}
-            />
-          )}
-
           <View style={styles.row}>
-            <View style={styles.textWrap}>
-              <Text
+            {/* Icon block */}
+            <View style={styles.iconWrap}>
+              <Animated.View
                 style={[
-                  styles.title,
-                  { color: colors.foreground, opacity: isActive ? 1 : 0.78 },
-                ]}
-                numberOfLines={1}
-              >
-                {mode.title}
-              </Text>
-              <Text
-                style={[
-                  styles.subtitle,
+                  styles.iconCircle,
                   {
-                    color: colors.mutedForeground,
-                    opacity: isActive ? 0.95 : 0.7,
+                    backgroundColor: isActive
+                      ? colors.primary
+                      : "rgba(0,0,0,0.04)",
+                    borderColor: isActive
+                      ? "transparent"
+                      : "rgba(0,0,0,0.06)",
+                    transform: [{ scale: pulse }],
+                    shadowColor: isActive ? colors.primaryGlow : "transparent",
+                    shadowOpacity: isActive ? 0.8 : 0,
+                    shadowRadius: isActive ? 12 : 0,
+                    shadowOffset: { width: 0, height: 0 },
                   },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    (isActive
+                      ? mode.iconName
+                      : (`${mode.iconName}-outline` as never)) as never
+                  }
+                  size={22}
+                  color={isActive ? "#FFFFFF" : colors.foreground}
+                />
+              </Animated.View>
+            </View>
+
+            {/* Text block */}
+            <View style={styles.textWrap}>
+              <View style={styles.titleRow}>
+                <Text
+                  style={[
+                    styles.title,
+                    {
+                      color: isActive ? colors.primaryDark : colors.foreground,
+                      opacity: isActive ? 1 : 0.85,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {mode.title}
+                </Text>
+                <View
+                  style={[
+                    styles.protocolPill,
+                    {
+                      backgroundColor: isActive
+                        ? colors.primarySoft
+                        : "rgba(0,0,0,0.04)",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.protocolText,
+                      {
+                        color: isActive
+                          ? colors.primary
+                          : colors.mutedForeground,
+                      },
+                    ]}
+                  >
+                    {mode.protocol}
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={[
+                  styles.description,
+                  { color: colors.mutedForeground },
                 ]}
                 numberOfLines={2}
               >
-                {mode.subtitle}
+                {mode.shortDescription}
               </Text>
-            </View>
 
-            <Animated.View
-              style={[
-                styles.iconCircle,
-                {
-                  backgroundColor: isActive
-                    ? colors.foreground
-                    : "rgba(0,0,0,0.04)",
-                  borderColor: isActive
-                    ? "transparent"
-                    : "rgba(0,0,0,0.06)",
-                  transform: [{ scale: pulse }],
-                  shadowColor: isActive ? colors.silverGlow : "transparent",
-                  shadowOpacity: isActive ? 0.9 : 0,
-                  shadowRadius: isActive ? 14 : 0,
-                },
-              ]}
-            >
-              <Ionicons
-                name={
-                  (isActive
-                    ? mode.iconName
-                    : (`${mode.iconName}-outline` as never)) as never
-                }
-                size={26}
-                color={isActive ? "#FFFFFF" : colors.foreground}
-              />
-            </Animated.View>
-          </View>
-
-          <View style={styles.footerRow}>
-            <View style={styles.protocolPill}>
-              <Text style={[styles.protocolText, { color: colors.mutedForeground }]}>
-                {mode.protocol}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.dnsText,
-                {
-                  color: isActive
-                    ? colors.foreground
-                    : colors.mutedForeground,
-                  opacity: isActive ? 0.9 : 0.55,
-                },
-              ]}
-            >
-              {mode.primaryDns}
-            </Text>
-            {isActive && (
-              <View style={styles.statusDot}>
-                <View
-                  style={[
-                    styles.statusDotInner,
-                    { backgroundColor: colors.success },
-                  ]}
-                />
+              <View style={styles.metaRow}>
+                <Text
+                  style={[styles.dnsText, { color: colors.mutedForeground }]}
+                >
+                  {mode.primaryDns}
+                </Text>
+                {isActive && (
+                  <View style={styles.activeIndicator}>
+                    <View
+                      style={[
+                        styles.activeDot,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    />
+                    <Text
+                      style={[styles.activeLabel, { color: colors.primary }]}
+                    >
+                      مفعّل
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
+            </View>
           </View>
         </BlurView>
       </Pressable>
@@ -220,84 +235,98 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
 
 const styles = StyleSheet.create({
   outer: {
-    borderRadius: 32,
-    marginBottom: 14,
+    borderRadius: 28,
   },
   pressable: {
-    borderRadius: 32,
+    borderRadius: 28,
     overflow: "hidden",
   },
   card: {
-    borderRadius: 32,
-    borderWidth: 1,
-    paddingHorizontal: 22,
-    paddingVertical: 22,
+    borderRadius: 28,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     overflow: "hidden",
+    minHeight: 88,
+    justifyContent: "center",
   },
   row: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  textWrap: {
-    flex: 1,
-    marginStart: 16,
-    alignItems: "flex-end",
-  },
-  title: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 20,
-    textAlign: "right",
-    writingDirection: "rtl",
-  },
-  subtitle: {
-    fontFamily: "Cairo_500Medium",
-    fontSize: 13,
-    marginTop: 4,
-    textAlign: "right",
-    writingDirection: "rtl",
+  iconWrap: {
+    width: 50,
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
+    elevation: 4,
   },
-  footerRow: {
+  textWrap: {
+    flex: 1,
+    marginStart: 12,
+  },
+  titleRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginTop: 16,
-    gap: 10,
+    justifyContent: "space-between",
+  },
+  title: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 15,
+    textAlign: "right",
+    writingDirection: "rtl",
+    flex: 1,
   },
   protocolPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: 999,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    marginStart: 8,
   },
   protocolText: {
-    fontFamily: "Cairo_600SemiBold",
-    fontSize: 11,
+    fontFamily: "Cairo_700Bold",
+    fontSize: 9,
     letterSpacing: 0.5,
+  },
+  description: {
+    fontFamily: "Cairo_500Medium",
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: "right",
+    writingDirection: "rtl",
+    marginTop: 2,
+  },
+  metaRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
   },
   dnsText: {
     fontFamily: "Cairo_500Medium",
-    fontSize: 12,
+    fontSize: 10,
+    fontVariant: ["tabular-nums"],
+    opacity: 0.7,
   },
-  statusDot: {
-    marginStart: "auto",
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "rgba(27,122,75,0.18)",
+  activeIndicator: {
+    flexDirection: "row-reverse",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 4,
   },
-  statusDotInner: {
-    width: 6,
-    height: 6,
+  activeDot: {
+    width: 5,
+    height: 5,
     borderRadius: 3,
+  },
+  activeLabel: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 10,
+    letterSpacing: 0.3,
   },
 });

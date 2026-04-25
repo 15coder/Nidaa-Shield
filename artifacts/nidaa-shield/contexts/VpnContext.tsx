@@ -18,8 +18,8 @@ export type ShieldMode =
 export interface ModeDefinition {
   id: Exclude<ShieldMode, null>;
   title: string;
-  subtitle: string;
-  description: string;
+  shortDescription: string;
+  longDescription: string;
   primaryDns: string;
   secondaryDns?: string;
   protocol: "DNS" | "DoH" | "DoT";
@@ -34,8 +34,8 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   smart: {
     id: "smart",
     title: "الدرع الذكي",
-    subtitle: "حظر الإعلانات والتتبع",
-    description:
+    shortDescription: "حظر الإعلانات والتتبع على مستوى النظام",
+    longDescription:
       "حظر الإعلانات على مستوى النظام بأكمله — بما فيها إعلانات تطبيقات التواصل ومنع تتبع البيانات بتقنية DNS Sinkholing.",
     primaryDns: "94.140.14.14",
     secondaryDns: "94.140.15.15",
@@ -45,8 +45,8 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   gaming: {
     id: "gaming",
     title: "توربو الألعاب",
-    subtitle: "تقليل التأخير وتحسين الأداء",
-    description:
+    shortDescription: "تقليل البينج لاستقرار الألعاب الأونلاين",
+    longDescription:
       "توجيه منخفض التأخير عبر شبكة Cloudflare لتقليل البينج وضمان استقرار ألعاب الأونلاين كببجي وفري فاير.",
     primaryDns: "1.1.1.1",
     secondaryDns: "1.0.0.1",
@@ -56,8 +56,8 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   family: {
     id: "family",
     title: "حارس العائلة",
-    subtitle: "حماية بيئية متكاملة",
-    description:
+    shortDescription: "حجب المحتوى غير اللائق والمواقع الضارة",
+    longDescription:
       "حجب فوري للمحتوى غير اللائق والمواقع الضارة عبر CleanBrowsing لضمان بيئة تصفح آمنة للأسرة.",
     primaryDns: "185.228.168.168",
     secondaryDns: "185.228.169.168",
@@ -67,8 +67,8 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   military: {
     id: "military",
     title: "الخصوصية العسكرية",
-    subtitle: "تشفير عسكري لطلبات الـ DNS",
-    description:
+    shortDescription: "تشفير DNS بروتوكول HTTPS لمنع التتبع",
+    longDescription:
       "تشفير كامل لطلبات الـ DNS عبر بروتوكول DNS-over-HTTPS لمنع مزود الخدمة من تتبع نشاطك.",
     primaryDns: "1.1.1.1",
     protocol: "DoH",
@@ -102,7 +102,6 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate from local storage (mimics Hive auto-restore on boot)
   useEffect(() => {
     (async () => {
       try {
@@ -122,7 +121,6 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  // Persist
   useEffect(() => {
     if (!hydrated) return;
     AsyncStorage.setItem(
@@ -135,7 +133,6 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     ).catch(() => {});
   }, [activeMode, hasVpnPermission, bytesBlocked, hydrated]);
 
-  // Connection telemetry simulator (uptime + blocked counter)
   useEffect(() => {
     if (!isConnected) return;
     const t = setInterval(() => {
@@ -145,15 +142,12 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(t);
   }, [isConnected]);
 
-  // Reset uptime when disconnected
   useEffect(() => {
     if (!isConnected) setUptimeSeconds(0);
   }, [isConnected]);
 
   const requestVpnPermission = useCallback(async () => {
-    // In a native build this would trigger VpnService.prepare(). Here we simulate
-    // the in-app consent flow described in the spec — instant approval, no exit.
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 250));
     setHasVpnPermission(true);
   }, []);
 
