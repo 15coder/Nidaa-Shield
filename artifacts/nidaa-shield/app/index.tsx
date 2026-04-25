@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AboutModal } from "@/components/AboutModal";
@@ -31,26 +31,52 @@ export default function HomeScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <Header />
 
-      <View style={styles.statusWrap}>
+      {/* Status section */}
+      <View style={styles.statusSection}>
         <StatusOrb />
       </View>
 
-      <View style={styles.modesWrap}>
-        {(
-          ["smart", "gaming", "family", "military"] as Array<
-            Exclude<ShieldMode, null>
+      {/* Modes section */}
+      <View style={styles.modesSection}>
+        <View style={styles.sectionHeader}>
+          <Text
+            style={[styles.sectionTitle, { color: colors.foreground }]}
           >
-        ).map((id) => (
-          <ModeCard
-            key={id}
-            mode={MODES[id]}
-            isActive={activeMode === id}
-            onPress={() => handleSelect(id)}
-          />
-        ))}
+            أوضاع الحماية
+          </Text>
+          <Text
+            style={[styles.sectionHint, { color: colors.mutedForeground }]}
+          >
+            اضغط للتفعيل
+          </Text>
+        </View>
+
+        <View style={styles.modesList}>
+          {(
+            ["smart", "gaming", "family", "military"] as Array<
+              Exclude<ShieldMode, null>
+            >
+          ).map((id) => (
+            <ModeCard
+              key={id}
+              mode={MODES[id]}
+              isActive={activeMode === id}
+              onPress={() => handleSelect(id)}
+            />
+          ))}
+        </View>
       </View>
 
-      <View style={[styles.footerWrap, { paddingBottom: bottomPad }]}>
+      {/* Footer section */}
+      <View
+        style={[
+          styles.footerSection,
+          {
+            paddingBottom: bottomPad,
+            borderTopColor: "rgba(0,0,0,0.06)",
+          },
+        ]}
+      >
         <Footer onAboutPress={() => setAboutVisible(true)} />
       </View>
 
@@ -66,16 +92,38 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  statusWrap: {
-    paddingHorizontal: 4,
+  statusSection: {
+    paddingHorizontal: 18,
+    paddingTop: 4,
+    paddingBottom: 14,
   },
-  modesWrap: {
+  modesSection: {
     flex: 1,
-    paddingHorizontal: 16,
-    gap: 10,
-    justifyContent: "center",
+    paddingHorizontal: 18,
   },
-  footerWrap: {
-    paddingHorizontal: 16,
+  sectionHeader: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    paddingHorizontal: 4,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 14,
+    letterSpacing: 0.3,
+  },
+  sectionHint: {
+    fontFamily: "Cairo_500Medium",
+    fontSize: 11,
+  },
+  modesList: {
+    gap: 10,
+  },
+  footerSection: {
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    marginTop: 8,
   },
 });

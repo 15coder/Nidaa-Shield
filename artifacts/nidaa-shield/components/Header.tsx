@@ -9,23 +9,12 @@ export function Header() {
   const insets = useSafeAreaInsets();
 
   const topPad =
-    Platform.OS === "web" ? Math.max(insets.top, 24) : insets.top + 6;
+    Platform.OS === "web" ? Math.max(insets.top, 28) : insets.top + 14;
 
   return (
     <View style={[styles.wrap, { paddingTop: topPad }]}>
-      <View style={styles.row}>
-        <Image
-          source={require("../assets/images/icon.png")}
-          style={styles.logo}
-        />
-        <View style={styles.titleWrap}>
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            نداء شايلد
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            نظام الحماية المحلي
-          </Text>
-        </View>
+      {/* Top row: Logo on the right, status pill on the left */}
+      <View style={styles.topRow}>
         <View
           style={[
             styles.statusBadge,
@@ -36,9 +25,27 @@ export function Header() {
             style={[styles.statusDot, { backgroundColor: colors.primary }]}
           />
           <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
-            محلي
+            محلي · بدون حساب
           </Text>
         </View>
+
+        <Image
+          source={require("../assets/images/icon.png")}
+          style={styles.logo}
+        />
+      </View>
+
+      {/* Spacer between logo and title */}
+      <View style={styles.spacer} />
+
+      {/* Title block */}
+      <View style={styles.titleBlock}>
+        <Text style={[styles.title, { color: colors.foreground }]}>
+          نداء شايلد
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          نظام الحماية المحلي
+        </Text>
       </View>
     </View>
   );
@@ -46,43 +53,46 @@ export function Header() {
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
+    paddingHorizontal: 22,
+    paddingBottom: 14,
   },
-  row: {
+  topRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   logo: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
   },
-  titleWrap: {
-    flex: 1,
-    marginStart: 12,
+  spacer: {
+    height: 18,
+  },
+  titleBlock: {
     alignItems: "flex-end",
   },
   title: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 17,
+    fontSize: 22,
     textAlign: "right",
     writingDirection: "rtl",
-    lineHeight: 22,
+    lineHeight: 28,
   },
   subtitle: {
     fontFamily: "Cairo_500Medium",
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "right",
     writingDirection: "rtl",
-    lineHeight: 14,
+    lineHeight: 16,
+    marginTop: 2,
   },
   statusBadge: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
   },
   statusDot: {
@@ -92,7 +102,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.5,
   },
 });

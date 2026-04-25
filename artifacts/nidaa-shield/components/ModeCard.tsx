@@ -242,11 +242,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   card: {
-    borderRadius: 28,
+    borderRadius: 24,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
     overflow: "hidden",
-    minHeight: 88,
+    minHeight: 78,
     justifyContent: "center",
   },
   row: {
@@ -254,14 +254,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconWrap: {
-    width: 50,
+    width: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   iconCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,

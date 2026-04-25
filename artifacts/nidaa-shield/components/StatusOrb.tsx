@@ -89,8 +89,21 @@ export function StatusOrb() {
   };
 
   return (
-    <View style={styles.wrap}>
-      <View style={styles.orbCol}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isConnected
+            ? "rgba(0, 180, 255, 0.04)"
+            : "rgba(245, 247, 250, 0.6)",
+          borderColor: isConnected
+            ? "rgba(0, 180, 255, 0.25)"
+            : "rgba(0, 0, 0, 0.06)",
+        },
+      ]}
+    >
+      <View style={styles.row}>
+        {/* Orb on the right (RTL) */}
         <View style={styles.orbContainer}>
           <Animated.View
             style={[
@@ -131,7 +144,7 @@ export function StatusOrb() {
                     ? activeDef.iconName
                     : ("shield-outline" as never)
                 }
-                size={36}
+                size={28}
                 color={
                   isConnected ? colors.primaryDark : colors.mutedForeground
                 }
@@ -139,17 +152,16 @@ export function StatusOrb() {
             </LinearGradient>
           </Animated.View>
         </View>
-      </View>
 
-      <View style={styles.infoCol}>
-        <View style={styles.statusRow}>
+        {/* Info on the left (RTL) */}
+        <View style={styles.infoCol}>
           <View
             style={[
               styles.statusPill,
               {
                 backgroundColor: isConnected
-                  ? colors.primarySoft
-                  : "rgba(0,0,0,0.05)",
+                  ? colors.primary
+                  : "rgba(0,0,0,0.06)",
               },
             ]}
           >
@@ -158,7 +170,7 @@ export function StatusOrb() {
                 styles.pillDot,
                 {
                   backgroundColor: isConnected
-                    ? colors.primary
+                    ? "#FFFFFF"
                     : colors.mutedForeground,
                 },
               ]}
@@ -167,28 +179,33 @@ export function StatusOrb() {
               style={[
                 styles.statusText,
                 {
-                  color: isConnected ? colors.primary : colors.mutedForeground,
+                  color: isConnected ? "#FFFFFF" : colors.mutedForeground,
                 },
               ]}
             >
               {isConnected ? "مفعّل" : "غير مفعّل"}
             </Text>
           </View>
+
+          <Text
+            style={[styles.modeName, { color: colors.foreground }]}
+            numberOfLines={1}
+          >
+            {activeDef ? activeDef.title : "اختر وضع الحماية"}
+          </Text>
         </View>
+      </View>
 
-        <Text
-          style={[styles.modeName, { color: colors.foreground }]}
-          numberOfLines={1}
-        >
-          {activeDef ? activeDef.title : "اختر وضع الحماية"}
-        </Text>
-
+      {/* Metrics row + control */}
+      <View style={styles.bottomRow}>
         <View style={styles.metricsRow}>
           <View style={styles.metricBox}>
             <Text style={[styles.metricValue, { color: colors.foreground }]}>
               {isConnected ? formatTime(uptimeSeconds) : "00:00:00"}
             </Text>
-            <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.metricLabel, { color: colors.mutedForeground }]}
+            >
               مدة الاتصال
             </Text>
           </View>
@@ -197,88 +214,86 @@ export function StatusOrb() {
             <Text style={[styles.metricValue, { color: colors.foreground }]}>
               {isConnected ? formatBytes(bytesBlocked) : "0 ب"}
             </Text>
-            <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.metricLabel, { color: colors.mutedForeground }]}
+            >
               تم حظره
             </Text>
           </View>
         </View>
 
-        {/* Always-rendered control area to prevent layout shifts */}
-        <View style={styles.controlArea}>
-          <Pressable
-            disabled={!isConnected}
-            onPress={handleDisconnect}
-            style={({ pressed }) => [
-              styles.disconnectBtn,
+        <Pressable
+          disabled={!isConnected}
+          onPress={handleDisconnect}
+          style={({ pressed }) => [
+            styles.disconnectBtn,
+            {
+              backgroundColor: isConnected
+                ? colors.foreground
+                : "rgba(0,0,0,0.04)",
+              opacity: isConnected ? (pressed ? 0.85 : 1) : 0.5,
+            },
+          ]}
+        >
+          <Ionicons
+            name={isConnected ? "power" : "power-outline"}
+            size={13}
+            color={isConnected ? "#FFFFFF" : colors.mutedForeground}
+          />
+          <Text
+            style={[
+              styles.disconnectText,
               {
-                backgroundColor: isConnected
-                  ? colors.foreground
-                  : "rgba(0,0,0,0.04)",
-                opacity: isConnected ? (pressed ? 0.85 : 1) : 0.5,
+                color: isConnected ? "#FFFFFF" : colors.mutedForeground,
               },
             ]}
           >
-            <Ionicons
-              name={isConnected ? "power" : "power-outline"}
-              size={14}
-              color={isConnected ? "#FFFFFF" : colors.mutedForeground}
-            />
-            <Text
-              style={[
-                styles.disconnectText,
-                {
-                  color: isConnected ? "#FFFFFF" : colors.mutedForeground,
-                },
-              ]}
-            >
-              {isConnected ? "إيقاف الحماية" : "غير متصل"}
-            </Text>
-          </Pressable>
-        </View>
+            {isConnected ? "إيقاف" : "غير متصل"}
+          </Text>
+        </Pressable>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  card: {
+    borderRadius: 26,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  row: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 16,
-  },
-  orbCol: {
-    width: 110,
-    alignItems: "center",
-    justifyContent: "center",
+    gap: 14,
   },
   orbContainer: {
-    width: 110,
-    height: 110,
+    width: 76,
+    height: 76,
     alignItems: "center",
     justifyContent: "center",
   },
   ring: {
     position: "absolute",
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     borderWidth: 1.5,
     borderStyle: "dashed",
   },
   orb: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 18,
+    shadowRadius: 14,
     elevation: 8,
   },
   orbGradient: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -287,14 +302,7 @@ const styles = StyleSheet.create({
   infoCol: {
     flex: 1,
     alignItems: "flex-end",
-    minHeight: 110,
-    justifyContent: "space-between",
-  },
-  statusRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    width: "100%",
-    justifyContent: "flex-start",
+    gap: 6,
   },
   statusPill: {
     flexDirection: "row-reverse",
@@ -319,13 +327,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "right",
     writingDirection: "rtl",
-    marginTop: 4,
-    width: "100%",
+  },
+  bottomRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.06)",
   },
   metricsRow: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginTop: 4,
   },
   metricBox: {
     alignItems: "flex-end",
@@ -346,14 +360,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 1,
   },
-  controlArea: {
-    width: "100%",
-    alignItems: "flex-end",
-  },
   disconnectBtn: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,

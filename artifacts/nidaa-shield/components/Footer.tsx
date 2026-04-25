@@ -20,11 +20,12 @@ export function Footer({ onAboutPress }: Props) {
   };
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.row}>
       <Pressable
         onPress={onAboutPress}
+        accessibilityLabel="لماذا نداء شايلد"
         style={({ pressed }) => [
-          styles.trustLink,
+          styles.iconBtn,
           {
             backgroundColor: "rgba(0,0,0,0.04)",
             opacity: pressed ? 0.6 : 1,
@@ -33,77 +34,61 @@ export function Footer({ onAboutPress }: Props) {
       >
         <Ionicons
           name="information-circle-outline"
-          size={14}
+          size={18}
           color={colors.foreground}
         />
-        <Text style={[styles.trustText, { color: colors.foreground }]}>
-          لماذا نداء شايلد؟
+      </Pressable>
+
+      <Pressable
+        onPress={() => open(WHATSAPP_URL)}
+        style={({ pressed }) => [
+          styles.socialBtn,
+          {
+            borderColor: "rgba(0,0,0,0.08)",
+            opacity: pressed ? 0.6 : 1,
+          },
+        ]}
+      >
+        <Ionicons name="logo-whatsapp" size={15} color={colors.foreground} />
+        <Text style={[styles.socialLabel, { color: colors.foreground }]}>
+          +963 980 362 204
         </Text>
       </Pressable>
 
-      <View style={styles.socialRow}>
-        <Pressable
-          onPress={() => open(WHATSAPP_URL)}
-          style={({ pressed }) => [
-            styles.socialBtn,
-            {
-              borderColor: "rgba(0,0,0,0.08)",
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons name="logo-whatsapp" size={16} color={colors.foreground} />
-          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
-            +963 980 362 204
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => open(INSTAGRAM_URL)}
-          style={({ pressed }) => [
-            styles.socialBtn,
-            {
-              borderColor: "rgba(0,0,0,0.08)",
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons
-            name="logo-instagram"
-            size={16}
-            color={colors.foreground}
-          />
-          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
-            15coder
-          </Text>
-        </Pressable>
-      </View>
+      <Pressable
+        onPress={() => open(INSTAGRAM_URL)}
+        style={({ pressed }) => [
+          styles.socialBtn,
+          {
+            borderColor: "rgba(0,0,0,0.08)",
+            opacity: pressed ? 0.6 : 1,
+          },
+        ]}
+      >
+        <Ionicons name="logo-instagram" size={15} color={colors.foreground} />
+        <Text style={[styles.socialLabel, { color: colors.foreground }]}>
+          15coder
+        </Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    alignItems: "center",
-    paddingTop: 12,
-    paddingBottom: 6,
-    gap: 10,
-  },
-  trustLink: {
+  row: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 999,
-  },
-  trustText: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 12,
-  },
-  socialRow: {
-    flexDirection: "row-reverse",
     gap: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
     flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
     justifyContent: "center",
   },
   socialBtn: {
@@ -111,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
   },
