@@ -67,6 +67,9 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Spacer to push footer to bottom */}
+      <View style={styles.spacer} />
+
       {/* Footer section */}
       <View
         style={[
@@ -98,7 +101,6 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   modesSection: {
-    flex: 1,
     paddingHorizontal: 18,
   },
   sectionHeader: {
@@ -120,10 +122,13 @@ const styles = StyleSheet.create({
   modesList: {
     gap: 10,
   },
+  spacer: {
+    flex: 1,
+    minHeight: 16,
+  },
   footerSection: {
     paddingHorizontal: 18,
-    paddingTop: 14,
+    paddingTop: 16,
     borderTopWidth: 1,
-    marginTop: 8,
   },
 });
