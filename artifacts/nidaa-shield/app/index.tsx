@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AboutModal } from "@/components/AboutModal";
@@ -29,59 +29,65 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Header />
-
-      {/* Status section */}
-      <View style={styles.statusSection}>
-        <StatusOrb />
-      </View>
-
-      {/* Modes section */}
-      <View style={styles.modesSection}>
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[styles.sectionTitle, { color: colors.foreground }]}
-          >
-            أوضاع الحماية
-          </Text>
-          <Text
-            style={[styles.sectionHint, { color: colors.mutedForeground }]}
-          >
-            اضغط للتفعيل
-          </Text>
-        </View>
-
-        <View style={styles.modesList}>
-          {(
-            ["smart", "gaming", "family", "military"] as Array<
-              Exclude<ShieldMode, null>
-            >
-          ).map((id) => (
-            <ModeCard
-              key={id}
-              mode={MODES[id]}
-              isActive={activeMode === id}
-              onPress={() => handleSelect(id)}
-            />
-          ))}
-        </View>
-      </View>
-
-      {/* Spacer to push footer to bottom */}
-      <View style={styles.spacer} />
-
-      {/* Footer section */}
-      <View
-        style={[
-          styles.footerSection,
-          {
-            paddingBottom: bottomPad,
-            borderTopColor: "rgba(0,0,0,0.06)",
-          },
-        ]}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces
+        overScrollMode="always"
       >
-        <Footer onAboutPress={() => setAboutVisible(true)} />
-      </View>
+        <Header />
+
+        {/* Status section */}
+        <View style={styles.statusSection}>
+          <StatusOrb />
+        </View>
+
+        {/* Modes section */}
+        <View style={styles.modesSection}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[styles.sectionTitle, { color: colors.foreground }]}
+            >
+              أوضاع الحماية
+            </Text>
+            <Text
+              style={[styles.sectionHint, { color: colors.mutedForeground }]}
+            >
+              اضغط للتفعيل
+            </Text>
+          </View>
+
+          <View style={styles.modesList}>
+            {(
+              ["smart", "gaming", "family", "military"] as Array<
+                Exclude<ShieldMode, null>
+              >
+            ).map((id) => (
+              <ModeCard
+                key={id}
+                mode={MODES[id]}
+                isActive={activeMode === id}
+                onPress={() => handleSelect(id)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Footer section */}
+        <View
+          style={[
+            styles.footerSection,
+            {
+              paddingBottom: bottomPad,
+              borderTopColor: "rgba(0,0,0,0.06)",
+              marginTop: 24,
+            },
+          ]}
+        >
+          <Footer onAboutPress={() => setAboutVisible(true)} />
+        </View>
+      </ScrollView>
 
       <AboutModal
         visible={aboutVisible}
@@ -94,6 +100,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   statusSection: {
     paddingHorizontal: 18,
@@ -121,10 +133,6 @@ const styles = StyleSheet.create({
   },
   modesList: {
     gap: 10,
-  },
-  spacer: {
-    flex: 1,
-    minHeight: 16,
   },
   footerSection: {
     paddingHorizontal: 18,
