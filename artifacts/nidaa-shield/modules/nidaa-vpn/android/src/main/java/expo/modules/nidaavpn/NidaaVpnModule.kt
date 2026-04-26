@@ -63,21 +63,20 @@ class NidaaVpnModule : Module() {
 
     AsyncFunction("startVpn") { config: Map<String, Any?>, promise: Promise ->
       try {
-        val intent = Intent(context, NidaaVpnService::class.java).apply {
-          action = NidaaVpnService.ACTION_START
-          putExtra(NidaaVpnService.EXTRA_NAME, config["sessionName"] as? String ?: "نداء شايلد")
-          putExtra(NidaaVpnService.EXTRA_PRIMARY, config["primaryDns"] as? String ?: "1.1.1.1")
-          (config["secondaryDns"] as? String)?.let {
-            putExtra(NidaaVpnService.EXTRA_SECONDARY, it)
-          }
-          putExtra(NidaaVpnService.EXTRA_USE_DOH, config["useDoH"] as? Boolean ?: false)
-          (config["modeId"] as? String)?.let {
-            putExtra(NidaaVpnService.EXTRA_MODE_ID, it)
-          }
-          putExtra(NidaaVpnService.EXTRA_BLOCKLIST, toStringArray(config["blocklist"]))
-          putExtra(NidaaVpnService.EXTRA_WHITELIST, toStringArray(config["whitelist"]))
-          putExtra(NidaaVpnService.EXTRA_EXCLUDED, toStringArray(config["excludedApps"]))
+        val intent = Intent(context, NidaaVpnService::class.java)
+        intent.action = NidaaVpnService.ACTION_START
+        intent.putExtra(NidaaVpnService.EXTRA_NAME, config["sessionName"] as? String ?: "نداء شايلد")
+        intent.putExtra(NidaaVpnService.EXTRA_PRIMARY, config["primaryDns"] as? String ?: "1.1.1.1")
+        (config["secondaryDns"] as? String)?.let {
+          intent.putExtra(NidaaVpnService.EXTRA_SECONDARY, it)
         }
+        intent.putExtra(NidaaVpnService.EXTRA_USE_DOH, config["useDoH"] as? Boolean ?: false)
+        (config["modeId"] as? String)?.let {
+          intent.putExtra(NidaaVpnService.EXTRA_MODE_ID, it)
+        }
+        intent.putExtra(NidaaVpnService.EXTRA_BLOCKLIST, toStringArray(config["blocklist"]))
+        intent.putExtra(NidaaVpnService.EXTRA_WHITELIST, toStringArray(config["whitelist"]))
+        intent.putExtra(NidaaVpnService.EXTRA_EXCLUDED, toStringArray(config["excludedApps"]))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
           context.startForegroundService(intent)
         } else {
@@ -91,9 +90,8 @@ class NidaaVpnModule : Module() {
 
     AsyncFunction("stopVpn") { promise: Promise ->
       try {
-        val intent = Intent(context, NidaaVpnService::class.java).apply {
-          action = NidaaVpnService.ACTION_STOP
-        }
+        val intent = Intent(context, NidaaVpnService::class.java)
+        intent.action = NidaaVpnService.ACTION_STOP
         context.startService(intent)
         promise.resolve(true)
       } catch (t: Throwable) {

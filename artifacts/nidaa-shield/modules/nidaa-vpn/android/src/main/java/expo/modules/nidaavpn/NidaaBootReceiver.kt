@@ -14,17 +14,16 @@ class NidaaBootReceiver : BroadcastReceiver() {
     val cfg = VpnPrefs.loadLast(context) ?: return
     // Only safe to start if user previously granted permission to our app
     if (VpnService.prepare(context) != null) return
-    val svc = Intent(context, NidaaVpnService::class.java).apply {
-      action = NidaaVpnService.ACTION_START
-      putExtra(NidaaVpnService.EXTRA_PRIMARY, cfg.primary)
-      putExtra(NidaaVpnService.EXTRA_SECONDARY, cfg.secondary)
-      putExtra(NidaaVpnService.EXTRA_USE_DOH, cfg.useDoH)
-      putExtra(NidaaVpnService.EXTRA_NAME, cfg.name)
-      putExtra(NidaaVpnService.EXTRA_MODE_ID, cfg.modeId)
-      putExtra(NidaaVpnService.EXTRA_BLOCKLIST, cfg.blocklist.toTypedArray())
-      putExtra(NidaaVpnService.EXTRA_WHITELIST, cfg.whitelist.toTypedArray())
-      putExtra(NidaaVpnService.EXTRA_EXCLUDED, cfg.excluded.toTypedArray())
-    }
+    val svc = Intent(context, NidaaVpnService::class.java)
+    svc.action = NidaaVpnService.ACTION_START
+    svc.putExtra(NidaaVpnService.EXTRA_PRIMARY, cfg.primary)
+    svc.putExtra(NidaaVpnService.EXTRA_SECONDARY, cfg.secondary)
+    svc.putExtra(NidaaVpnService.EXTRA_USE_DOH, cfg.useDoH)
+    svc.putExtra(NidaaVpnService.EXTRA_NAME, cfg.name)
+    svc.putExtra(NidaaVpnService.EXTRA_MODE_ID, cfg.modeId)
+    svc.putExtra(NidaaVpnService.EXTRA_BLOCKLIST, cfg.blocklist.toTypedArray())
+    svc.putExtra(NidaaVpnService.EXTRA_WHITELIST, cfg.whitelist.toTypedArray())
+    svc.putExtra(NidaaVpnService.EXTRA_EXCLUDED, cfg.excluded.toTypedArray())
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       context.startForegroundService(svc)
     } else {
