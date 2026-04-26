@@ -170,7 +170,8 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                     shadowOpacity: isActive ? 0.85 : 0,
                     shadowRadius: isActive ? 14 : 0,
                     shadowOffset: { width: 0, height: 0 },
-                    elevation: isActive ? 8 : 0,
+                    elevation: 0,
+                    backgroundColor: "transparent",
                   },
                 ]}
               >

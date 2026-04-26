@@ -291,9 +291,7 @@ export default function OnboardingScreen() {
 
   const handleNextPress = () => {
     if (isLast) {
-      finish();
-    } else if (index === 0) {
-      // Show the prayer reminder after the welcome slide
+      // Show the prayer reminder after completing all slides
       setSalahModalVisible(true);
     } else {
       goTo(index + 1);
@@ -302,7 +300,7 @@ export default function OnboardingScreen() {
 
   const handleSalahDismiss = () => {
     setSalahModalVisible(false);
-    goTo(1);
+    finish();
   };
 
   const isLast = index === SLIDES.length - 1;
