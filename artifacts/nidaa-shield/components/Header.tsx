@@ -17,18 +17,7 @@ export function Header() {
   return (
     <View style={[styles.wrap, { paddingTop: topPad }]}>
       <View style={styles.topRow}>
-        <View
-          style={[styles.statusBadge, { backgroundColor: colors.primarySoft }]}
-        >
-          <View
-            style={[styles.statusDot, { backgroundColor: colors.primary }]}
-          />
-          <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
-            نداء-شايلد
-          </Text>
-        </View>
-
-        <View style={styles.leftCluster}>
+        <View style={styles.rightCluster}>
           <Pressable
             accessibilityLabel="الإعدادات"
             onPress={() => router.push("/settings")}
@@ -42,11 +31,22 @@ export function Header() {
           >
             <Ionicons name="settings-outline" size={18} color={colors.foreground} />
           </Pressable>
-          <Image
-            source={require("../assets/images/icon.png")}
-            style={styles.logo}
-          />
+          <View
+            style={[styles.statusBadge, { backgroundColor: colors.primarySoft }]}
+          >
+            <View
+              style={[styles.statusDot, { backgroundColor: colors.primary }]}
+            />
+            <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
+              نداء-شايلد
+            </Text>
+          </View>
         </View>
+
+        <Image
+          source={require("../assets/images/icon.png")}
+          style={styles.logo}
+        />
       </View>
     </View>
   );
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  leftCluster: {
+  rightCluster: {
     flexDirection: "row-reverse",
     alignItems: "center",
     gap: 10,

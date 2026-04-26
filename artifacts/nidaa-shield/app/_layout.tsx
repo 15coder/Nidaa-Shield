@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SalatReminder } from "@/components/SalatReminder";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { VpnProvider } from "@/contexts/VpnContext";
 import { useColors } from "@/hooks/useColors";
@@ -71,6 +72,7 @@ function ThemedShell() {
       <VpnProvider>
         <ThemedStatusBar />
         <RootLayoutNav />
+        <SalatReminder />
       </VpnProvider>
     </GestureHandlerRootView>
   );
