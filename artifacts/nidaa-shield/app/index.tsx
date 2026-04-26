@@ -7,6 +7,7 @@ import { FirstConnectionAnimation } from "@/components/FirstConnectionAnimation"
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModeCard } from "@/components/ModeCard";
+import { SalatCard } from "@/components/SalatCard";
 import { StatusOrb } from "@/components/StatusOrb";
 import { useSettings } from "@/contexts/SettingsContext";
 import { MODES, useVpn, type ShieldMode } from "@/contexts/VpnContext";
@@ -74,6 +75,9 @@ export default function HomeScreen() {
         <View style={styles.statusSection}>
           <StatusOrb />
         </View>
+
+        {/* Daily salat reminder card */}
+        <SalatCard />
 
         {/* Modes section */}
         <View style={styles.modesSection}>

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
 
@@ -22,9 +22,6 @@ export function Footer({ onAboutPress }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { color: colors.mutedForeground }]}>
-        تواصل معنا
-      </Text>
       <View style={styles.row}>
         <SocialIcon
           icon="logo-whatsapp"
@@ -89,11 +86,6 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: "center",
     gap: 10,
-  },
-  label: {
-    fontFamily: "Cairo_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 0.5,
   },
   row: {
     flexDirection: "row-reverse",
