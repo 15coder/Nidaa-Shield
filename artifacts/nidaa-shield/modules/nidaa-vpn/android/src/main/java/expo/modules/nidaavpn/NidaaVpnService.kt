@@ -4,12 +4,14 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.service.quicksettings.TileService
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import java.io.FileInputStream
@@ -90,7 +92,23 @@ class NidaaVpnService : VpnService() {
     running = true
     workerThread = thread(name = "nidaa-vpn-worker", isDaemon = true) { runLoop() }
 
+    notifySystemSurfaces()
+
     return START_STICKY
+  }
+
+  private fun notifySystemSurfaces() {
+    // Refresh the home-screen widget(s) so they show current state.
+    try { NidaaWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
+    // Ask the system to re-bind our quick-settings tile so its label/state update.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      try {
+        TileService.requestListeningState(
+          applicationContext,
+          ComponentName(applicationContext, NidaaTileService::class.java),
+        )
+      } catch (_: Throwable) {}
+    }
   }
 
   private fun establishTunnel(sessionName: String, excludedPackages: Set<String>): Boolean {
@@ -268,6 +286,7 @@ class NidaaVpnService : VpnService() {
       @Suppress("DEPRECATION")
       try { stopForeground(true) } catch (_: Throwable) {}
     }
+    notifySystemSurfaces()
   }
 
   override fun onRevoke() {

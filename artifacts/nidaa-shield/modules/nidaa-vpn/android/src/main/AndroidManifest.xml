@@ -18,6 +18,17 @@
       </intent-filter>
     </service>
 
+    <service
+      android:name="expo.modules.nidaavpn.NidaaTileService"
+      android:label="نداء شايلد"
+      android:icon="@android:drawable/ic_lock_lock"
+      android:exported="true"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
     <receiver
       android:name="expo.modules.nidaavpn.NidaaBootReceiver"
       android:enabled="true"
@@ -26,6 +37,19 @@
         <action android:name="android.intent.action.BOOT_COMPLETED" />
         <action android:name="android.intent.action.QUICKBOOT_POWERON" />
       </intent-filter>
+    </receiver>
+
+    <receiver
+      android:name="expo.modules.nidaavpn.NidaaWidgetProvider"
+      android:label="نداء شايلد"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_TOGGLE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/nidaa_widget_info" />
     </receiver>
   </application>
 </manifest>

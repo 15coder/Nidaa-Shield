@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
+  Alert,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +23,31 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const settings = useSettings();
+
+  const openTileSettings = () => {
+    if (Platform.OS !== "android") {
+      Alert.alert(
+        "غير مدعوم",
+        "مفتاح الإعدادات السريعة متاح فقط على أجهزة الأندرويد.",
+      );
+      return;
+    }
+    // Android Q+ open quick settings panel directly
+    Linking.sendIntent("android.settings.panel.action.INTERNET_CONNECTIVITY")
+      .catch(() => {
+        Alert.alert(
+          "كيفية الإضافة",
+          "اسحب من أعلى الشاشة بإصبعين لفتح الإعدادات السريعة، ثم اضغط على رمز القلم وأضف بطاقة \"نداء شايلد\".",
+        );
+      });
+  };
+
+  const showWidgetHowTo = () => {
+    Alert.alert(
+      "إضافة الويدجت",
+      "اضغط مطوّلاً على شاشتك الرئيسية، ثم اختر \"إضافة ودجت\" أو \"Widgets\"، وابحث عن \"نداء شايلد\". سيظهر زرّ سريع للتشغيل والإيقاف.",
+    );
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -55,6 +82,25 @@ export default function SettingsScreen() {
             current={settings.themeMode}
             onSelect={(m) => settings.setThemeMode(m)}
             icon="moon-outline"
+            colors={colors}
+          />
+        </Section>
+
+        <Section title="الأدوات" colors={colors}>
+          <NavRow
+            icon="bar-chart-outline"
+            iconColor={colors.primary}
+            label="إحصائيات الحماية"
+            hint="عدد الاستعلامات والمحظور والمسموح"
+            onPress={() => router.push("/stats")}
+            colors={colors}
+          />
+          <NavRow
+            icon="speedometer-outline"
+            iconColor="#1B7A4B"
+            label="اختبار سرعة DNS"
+            hint="قِس زمن الاستجابة لكل خادم"
+            onPress={() => router.push("/speed-test")}
             colors={colors}
           />
         </Section>
@@ -106,39 +152,22 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="ميّزات النظام" colors={colors}>
-          <View
-            style={[
-              styles.infoCard,
-              { backgroundColor: colors.cardSolid, borderColor: colors.cardBorder },
-            ]}
-          >
-            <View style={styles.infoRow}>
-              <Ionicons name="apps" size={18} color={colors.primary} />
-              <Text style={[styles.infoTitle, { color: colors.foreground }]}>
-                ودجت الشاشة الرئيسية
-              </Text>
-            </View>
-            <Text style={[styles.infoBody, { color: colors.mutedForeground }]}>
-              اضغط مطوّلاً على شاشتك الرئيسية ثم اختر "إضافة ودجت" وابحث عن "نداء شايلد".
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.infoCard,
-              { backgroundColor: colors.cardSolid, borderColor: colors.cardBorder },
-            ]}
-          >
-            <View style={styles.infoRow}>
-              <Ionicons name="grid" size={18} color={colors.primary} />
-              <Text style={[styles.infoTitle, { color: colors.foreground }]}>
-                مفتاح الإعدادات السريعة
-              </Text>
-            </View>
-            <Text style={[styles.infoBody, { color: colors.mutedForeground }]}>
-              اسحب من أعلى الشاشة ثم اضغط على رمز القلم وأضف "نداء شايلد" للتحكّم بالحماية بضغطة واحدة.
-            </Text>
-          </View>
+          <NavRow
+            icon="apps"
+            iconColor={colors.primary}
+            label="ودجت الشاشة الرئيسية"
+            hint="زرّ تشغيل سريع على شاشتك الرئيسية"
+            onPress={showWidgetHowTo}
+            colors={colors}
+          />
+          <NavRow
+            icon="grid"
+            iconColor={colors.primary}
+            label="مفتاح الإعدادات السريعة"
+            hint="تحكّم بالحماية من شريط الإشعارات"
+            onPress={openTileSettings}
+            colors={colors}
+          />
         </Section>
       </ScrollView>
     </View>
@@ -333,27 +362,5 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-  },
-  infoCard: {
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 14,
-    gap: 6,
-  },
-  infoRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 10,
-  },
-  infoTitle: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 13,
-  },
-  infoBody: {
-    fontFamily: "Cairo_500Medium",
-    fontSize: 11,
-    textAlign: "right",
-    writingDirection: "rtl",
-    lineHeight: 18,
   },
 });

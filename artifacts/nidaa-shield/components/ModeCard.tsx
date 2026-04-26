@@ -9,10 +9,12 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useColorScheme,
   View,
 } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useSettings } from "@/contexts/SettingsContext";
 import type { ModeDefinition } from "@/contexts/VpnContext";
 
 interface Props {
@@ -23,6 +25,12 @@ interface Props {
 
 export function ModeCard({ mode, isActive, onPress }: Props) {
   const colors = useColors();
+  const settings = useSettings();
+  const systemScheme = useColorScheme();
+  const effectiveScheme =
+    settings.themeMode === "system" ? systemScheme ?? "light" : settings.themeMode;
+  const isDark = effectiveScheme === "dark";
+
   const pulse = useRef(new Animated.Value(1)).current;
   const press = useRef(new Animated.Value(1)).current;
 
@@ -75,6 +83,21 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     onPress();
   };
 
+  // Theme-aware backgrounds
+  const activeGradient: [string, string, string] = isDark
+    ? ["rgba(0, 180, 255, 0.18)", "rgba(0, 180, 255, 0.08)", "rgba(22, 28, 36, 0.95)"]
+    : ["#EAF7FF", "#F4FBFF", "#FFFFFF"];
+
+  const inactiveBg = isDark ? colors.cardSolid : "#F6F8FB";
+  const inactiveIconBg = isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF";
+  const inactiveIconBorder = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(0,0,0,0.06)";
+  const activeTitleColor = isDark ? colors.primary : colors.primaryDark;
+  const activeDescColor = isDark
+    ? "rgba(180, 220, 245, 0.85)"
+    : "rgba(0, 80, 120, 0.75)";
+
   return (
     <Animated.View
       style={[
@@ -82,7 +105,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         {
           transform: [{ scale: press }],
           shadowColor: isActive ? colors.primaryGlow : "#000",
-          shadowOpacity: isActive ? 0.45 : 0.05,
+          shadowOpacity: isActive ? 0.45 : (isDark ? 0.25 : 0.05),
           shadowRadius: isActive ? 20 : 10,
           shadowOffset: { width: 0, height: isActive ? 8 : 3 },
           elevation: isActive ? 10 : 3,
@@ -108,10 +131,10 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
             },
           ]}
         >
-          {/* Background fill: inactive = soft gray; active = blue gradient */}
+          {/* Background fill: theme-aware */}
           {isActive ? (
             <LinearGradient
-              colors={["#EAF7FF", "#F4FBFF", "#FFFFFF"]}
+              colors={activeGradient}
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={StyleSheet.absoluteFill}
@@ -120,7 +143,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: "#F6F8FB" },
+                { backgroundColor: inactiveBg },
               ]}
             />
           )}
@@ -161,9 +184,9 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                     style={[
                       styles.iconCircle,
                       {
-                        backgroundColor: "#FFFFFF",
+                        backgroundColor: inactiveIconBg,
                         borderWidth: 1,
-                        borderColor: "rgba(0,0,0,0.06)",
+                        borderColor: inactiveIconBorder,
                       },
                     ]}
                   >
@@ -184,9 +207,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                   style={[
                     styles.title,
                     {
-                      color: isActive
-                        ? colors.primaryDark
-                        : colors.foreground,
+                      color: isActive ? activeTitleColor : colors.foreground,
                     },
                   ]}
                   numberOfLines={1}
@@ -201,7 +222,14 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                     ]}
                   >
                     <View style={styles.activePillDot} />
-                    <Text style={styles.activePillText}>مفعّل</Text>
+                    <Text
+                      style={[
+                        styles.activePillText,
+                        { color: colors.primaryForeground },
+                      ]}
+                    >
+                      مفعّل
+                    </Text>
                   </View>
                 ) : (
                   <Ionicons
@@ -217,9 +245,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                 style={[
                   styles.description,
                   {
-                    color: isActive
-                      ? "rgba(0, 80, 120, 0.75)"
-                      : colors.mutedForeground,
+                    color: isActive ? activeDescColor : colors.mutedForeground,
                   },
                 ]}
                 numberOfLines={2}
@@ -318,7 +344,6 @@ const styles = StyleSheet.create({
   activePillText: {
     fontFamily: "Cairo_700Bold",
     fontSize: 10,
-    color: "#FFFFFF",
     letterSpacing: 0.4,
   },
   description: {

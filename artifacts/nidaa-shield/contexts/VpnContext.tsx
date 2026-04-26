@@ -61,9 +61,9 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   gaming: {
     id: "gaming",
     title: "توربو الألعاب",
-    shortDescription: "تقليل البينج لاستقرار الألعاب الأونلاين",
+    shortDescription: "DNS سريع يقلّل تأخير الاستعلامات للألعاب",
     longDescription:
-      "توجيه منخفض التأخير عبر شبكة Cloudflare لتقليل البينج وضمان استقرار ألعاب الأونلاين كببجي وفري فاير.",
+      "خادم DNS عالي السرعة من Cloudflare (1.1.1.1) لتقليل زمن استعلام النطاقات أثناء اللعب — مفيد لتسريع تحميل الموارد دون تغيير مسار الاتصال نفسه.",
     primaryDns: "1.1.1.1",
     secondaryDns: "1.0.0.1",
     protocol: "DNS",
@@ -280,7 +280,9 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
         title = def.title;
       }
 
-      const useDoH = mode === "military" ? settings.useDoH : false;
+      // Military mode ALWAYS uses DoH — that's its core promise.
+      // Other modes follow the user setting.
+      const useDoH = mode === "military" ? true : settings.useDoH;
 
       return {
         sessionName: title,

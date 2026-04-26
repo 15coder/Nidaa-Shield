@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
-import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -15,7 +14,6 @@ const INSTAGRAM_URL = "https://www.instagram.com/15coder";
 
 export function Footer({ onAboutPress }: Props) {
   const colors = useColors();
-  const router = useRouter();
 
   const open = (url: string) => {
     Linking.openURL(url).catch(() => {});
@@ -23,40 +21,6 @@ export function Footer({ onAboutPress }: Props) {
 
   return (
     <View>
-      <View style={styles.row}>
-        <Pressable
-          onPress={() => router.push("/stats")}
-          accessibilityLabel="إحصائيات الحماية"
-          style={({ pressed }) => [
-            styles.toolBtn,
-            {
-              backgroundColor: colors.primarySoft,
-              borderColor: "transparent",
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons name="bar-chart-outline" size={15} color={colors.primary} />
-          <Text style={[styles.toolLabel, { color: colors.primary }]}>الإحصائيات</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => router.push("/speed-test")}
-          accessibilityLabel="اختبار سرعة الـ DNS"
-          style={({ pressed }) => [
-            styles.toolBtn,
-            {
-              backgroundColor: colors.primarySoft,
-              borderColor: "transparent",
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons name="speedometer-outline" size={15} color={colors.primary} />
-          <Text style={[styles.toolLabel, { color: colors.primary }]}>اختبار السرعة</Text>
-        </Pressable>
-      </View>
-
       <View style={styles.row}>
         <Pressable
           onPress={onAboutPress}
@@ -111,19 +75,6 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     flexWrap: "wrap",
     justifyContent: "center",
-  },
-  toolBtn: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  toolLabel: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 12,
   },
   iconBtn: {
     width: 36,
