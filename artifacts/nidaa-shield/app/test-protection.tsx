@@ -180,13 +180,20 @@ export default function TestProtectionScreen() {
     }
   };
 
+  const isDark = colors.scheme === "dark";
   const overallColor =
     overallStatus === "good"
-      ? "#1B7A4B"
+      ? isDark
+        ? "#3FCB87"
+        : "#1B7A4B"
       : overallStatus === "weak"
-        ? "#F39200"
+        ? isDark
+          ? "#F4B860"
+          : "#F39200"
         : overallStatus === "bad"
-          ? "#E03E52"
+          ? isDark
+            ? "#FF6B7E"
+            : "#E03E52"
           : colors.mutedForeground;
 
   const overallTitle =
@@ -223,13 +230,31 @@ export default function TestProtectionScreen() {
             style={[
               styles.warnBanner,
               {
-                backgroundColor: "#FFE4D9",
-                borderColor: "#F39200",
+                backgroundColor:
+                  colors.scheme === "dark"
+                    ? "rgba(232, 162, 43, 0.12)"
+                    : "#FFF3E0",
+                borderColor:
+                  colors.scheme === "dark"
+                    ? "rgba(232, 162, 43, 0.45)"
+                    : "#F39200",
               },
             ]}
           >
-            <Ionicons name="warning" size={18} color="#C77600" />
-            <Text style={[styles.warnText, { color: "#7A4500" }]}>
+            <Ionicons
+              name="warning"
+              size={18}
+              color={colors.scheme === "dark" ? "#F4B860" : "#C77600"}
+            />
+            <Text
+              style={[
+                styles.warnText,
+                {
+                  color:
+                    colors.scheme === "dark" ? "#F4B860" : "#7A4500",
+                },
+              ]}
+            >
               الحماية غير مفعّلة الآن — الاختبار سيُظهر أن الإعلانات تمر. فعّل وضعاً من الشاشة الرئيسية أوّلاً.
             </Text>
           </View>

@@ -29,8 +29,5 @@ class NidaaBootReceiver : BroadcastReceiver() {
     } else {
       context.startService(svc)
     }
-    // Refresh widgets after auto-start. Service will also call updateAll
-    // once it's running, but this gives the widget an immediate hint.
-    try { NidaaWidgetProvider.updateAll(context) } catch (_: Throwable) {}
   }
 }

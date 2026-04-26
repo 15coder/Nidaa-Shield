@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useDialog } from "@/components/Dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { useSettings, useUserBlocklist } from "@/contexts/SettingsContext";
 import { useColors } from "@/hooks/useColors";
@@ -19,6 +19,7 @@ import { useColors } from "@/hooks/useColors";
 export default function BlocklistScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const dialog = useDialog();
   const { addToBlocklist, removeFromBlocklist } = useSettings();
   const blocklist = useUserBlocklist();
   const [input, setInput] = useState("");
@@ -31,10 +32,20 @@ export default function BlocklistScreen() {
   };
 
   const handleRemove = (d: string) => {
-    Alert.alert("حذف من القائمة السوداء", `هل تريد حذف ${d}؟`, [
-      { text: "إلغاء", style: "cancel" },
-      { text: "حذف", style: "destructive", onPress: () => removeFromBlocklist(d) },
-    ]);
+    dialog.show({
+      title: "حذف من القائمة السوداء",
+      message: `هل تريد حذف ${d}؟`,
+      icon: "trash",
+      iconTint: "danger",
+      buttons: [
+        { text: "إلغاء", style: "cancel" },
+        {
+          text: "حذف",
+          style: "destructive",
+          onPress: () => removeFromBlocklist(d),
+        },
+      ],
+    });
   };
 
   return (

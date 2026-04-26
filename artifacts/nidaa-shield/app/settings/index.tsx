@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useDialog } from "@/components/Dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { ACCENT_LIST, type AccentName } from "@/constants/colors";
 import { useSettings, type ThemeMode } from "@/contexts/SettingsContext";
@@ -23,26 +23,26 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const settings = useSettings();
+  const dialog = useDialog();
 
   const openTileSettings = () => {
     if (Platform.OS !== "android") {
-      Alert.alert(
-        "غير مدعوم",
-        "مفاتيح الإعدادات السريعة متاحة فقط على أجهزة الأندرويد.",
-      );
+      dialog.show({
+        title: "غير مدعوم",
+        message:
+          "مفاتيح الإعدادات السريعة متاحة فقط على أجهزة الأندرويد.",
+        icon: "phone-portrait",
+        iconTint: "warning",
+      });
       return;
     }
-    Alert.alert(
-      "كيفية الإضافة",
-      "اسحب من أعلى الشاشة بإصبعين لفتح الإعدادات السريعة، ثم اضغط على رمز القلم (تعديل الأزرار) وستجد عدة بطاقات لنداء شايلد:\n\n• نداء شايلد (تشغيل/إيقاف)\n• الدرع الذكي\n• توربو الألعاب\n• حارس العائلة\n• الخصوصية العسكرية\n\nاسحب البطاقات التي تريدها إلى الأعلى.",
-    );
-  };
-
-  const showWidgetHowTo = () => {
-    Alert.alert(
-      "إضافة الويدجت",
-      'اضغط مطوّلاً على مساحة فارغة في شاشتك الرئيسية، ثم اختر "إضافة ودجت" أو "Widgets"، وابحث عن "نداء شايلد". ستجد عدة تصاميم:\n\n• ودجت سريع (مفتاح تشغيل/إيقاف)\n• ودجت الأوضاع (4 أوضاع بضغطة)\n• ودجت الحالة الكبير\n\nاختر التصميم الذي يناسبك ثم اسحبه إلى شاشتك.',
-    );
+    dialog.show({
+      title: "كيفية الإضافة",
+      message:
+        "اسحب من أعلى الشاشة بإصبعين لفتح الإعدادات السريعة، ثم اضغط على رمز القلم (تعديل الأزرار) وستجد عدة بطاقات لنداء شايلد:\n\n• نداء شايلد (تشغيل/إيقاف)\n• الدرع الذكي\n• توربو الألعاب\n• حارس العائلة\n• الخصوصية العسكرية\n\nاسحب البطاقات التي تريدها إلى الأعلى.",
+      icon: "grid",
+      iconTint: "primary",
+    });
   };
 
   return (
@@ -212,14 +212,6 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="ميّزات النظام" colors={colors}>
-          <NavRow
-            icon="apps"
-            iconColor={colors.primary}
-            label="ودجت الشاشة الرئيسية"
-            hint="زرّ تشغيل سريع على شاشتك الرئيسية"
-            onPress={showWidgetHowTo}
-            colors={colors}
-          />
           <NavRow
             icon="grid"
             iconColor={colors.primary}

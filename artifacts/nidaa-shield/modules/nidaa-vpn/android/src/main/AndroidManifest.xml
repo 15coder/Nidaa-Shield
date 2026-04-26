@@ -84,57 +84,5 @@
         <action android:name="android.intent.action.QUICKBOOT_POWERON" />
       </intent-filter>
     </receiver>
-
-    <!-- Compact toggle widget (existing) -->
-    <receiver
-      android:name="expo.modules.nidaavpn.NidaaWidgetProvider"
-      android:label="نداء شايلد - مفتاح سريع"
-      android:icon="@mipmap/ic_launcher"
-      android:enabled="true"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_TOGGLE" />
-      </intent-filter>
-      <meta-data
-        android:name="android.appwidget.provider"
-        android:resource="@xml/nidaa_widget_info" />
-    </receiver>
-
-    <!-- Mode picker widget (4 modes in one tile) -->
-    <receiver
-      android:name="expo.modules.nidaavpn.NidaaModesWidgetProvider"
-      android:label="نداء شايلد - الأوضاع"
-      android:icon="@mipmap/ic_launcher"
-      android:enabled="true"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_SMART" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_GAMING" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_FAMILY" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_MILITARY" />
-      </intent-filter>
-      <meta-data
-        android:name="android.appwidget.provider"
-        android:resource="@xml/nidaa_modes_widget_info" />
-    </receiver>
-
-    <!-- Large status widget with live stats -->
-    <receiver
-      android:name="expo.modules.nidaavpn.NidaaStatusWidgetProvider"
-      android:label="نداء شايلد - حالة الحماية"
-      android:icon="@mipmap/ic_launcher"
-      android:enabled="true"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_STATUS_TOGGLE" />
-        <action android:name="expo.modules.nidaavpn.WIDGET_STATUS_OPEN" />
-      </intent-filter>
-      <meta-data
-        android:name="android.appwidget.provider"
-        android:resource="@xml/nidaa_status_widget_info" />
-    </receiver>
   </application>
 </manifest>

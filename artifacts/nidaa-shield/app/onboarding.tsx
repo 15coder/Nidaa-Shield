@@ -22,44 +22,53 @@ import { useColors } from "@/hooks/useColors";
 
 const { width: WINDOW_W } = Dimensions.get("window");
 
+interface SlideFeature {
+  icon: any;
+  text: string;
+}
+
 interface Slide {
   iconName: any;
   title: string;
   body: string;
-  bullets: { icon: any; text: string }[];
+  features: SlideFeature[];
+  accent: string;
 }
 
 const SLIDES: Slide[] = [
   {
-    iconName: "globe-outline",
-    title: "ما هو DNS؟",
-    body: "كل مرة تفتح فيها تطبيقاً أو موقعاً، يسأل هاتفك خادم DNS عن العنوان الحقيقي. الإعلانات والمتتبعات تستخدم نطاقات معروفة — يكفي أن نمنع الإجابة عنها لتختفي.",
-    bullets: [
-      { icon: "search-outline", text: "هاتفك يسأل: «أين youtube.com؟»" },
-      { icon: "swap-horizontal-outline", text: "خادم DNS يجيب بالعنوان" },
-      { icon: "shield-checkmark-outline", text: "نداء شايلد يحجب نطاقات الإعلانات" },
+    iconName: "shield-checkmark",
+    title: "أهلاً بك في نداء شايلد",
+    body: "حماية عربية أنيقة من الإعلانات والمتتبّعات والمحتوى الضار — مجّاناً، بدون حساب، وبدون تتبّع.",
+    features: [
+      { icon: "ban", text: "حجب الإعلانات" },
+      { icon: "eye-off", text: "إخفاء المتتبعات" },
+      { icon: "shield", text: "حماية كاملة" },
     ],
+    accent: "primary",
   },
   {
-    iconName: "phone-portrait-outline",
-    title: "VPN محلي 100%",
-    body: "نداء شايلد لا يرسل بياناتك إلى أي خادم خارجي. الفلترة تحدث داخل هاتفك فقط — لا تتبع، لا تسجيل، لا حسابات. حتى نحن لا نرى ماذا تتصفّح.",
-    bullets: [
-      { icon: "lock-closed-outline", text: "يعمل بدون إنترنت دائم" },
-      { icon: "battery-charging-outline", text: "استهلاك طاقة منخفض جداً" },
-      { icon: "code-slash-outline", text: "مفتوح المصدر وقابل للمراجعة" },
+    iconName: "phone-portrait",
+    title: "كل شيء يتم داخل هاتفك",
+    body: "لا نرسل بياناتك إلى أي خادم — الفلترة محلية 100٪. لا تسجيل، لا حسابات، حتى نحن لا نرى ماذا تتصفّح.",
+    features: [
+      { icon: "lock-closed", text: "خصوصية مطلقة" },
+      { icon: "battery-charging", text: "استهلاك منخفض" },
+      { icon: "code-slash", text: "مفتوح المصدر" },
     ],
+    accent: "primary",
   },
   {
-    iconName: "options-outline",
-    title: "اختر وضعاً واحداً يكفيك",
-    body: "أربعة أوضاع جاهزة تغطي معظم الاستخدامات. ابدأ بالدرع الذكي وغيّره متى شئت من الشاشة الرئيسية.",
-    bullets: [
-      { icon: "shield-checkmark", text: "الدرع الذكي — للاستخدام اليومي" },
-      { icon: "game-controller", text: "توربو الألعاب — أقل تأخير ممكن" },
-      { icon: "people", text: "حارس العائلة — حماية الأطفال" },
-      { icon: "lock-closed", text: "الخصوصية العسكرية — تشفير DoH" },
+    iconName: "options",
+    title: "أربعة أوضاع جاهزة لك",
+    body: "اختر وضعاً بضغطة واحدة. ابدأ بالدرع الذكي للاستخدام اليومي وغيّره متى شئت.",
+    features: [
+      { icon: "shield-checkmark", text: "ذكي" },
+      { icon: "game-controller", text: "ألعاب" },
+      { icon: "people", text: "عائلة" },
+      { icon: "lock-closed", text: "عسكري" },
     ],
+    accent: "primary",
   },
 ];
 
@@ -72,19 +81,37 @@ export default function OnboardingScreen() {
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const scroller = useRef<ScrollView | null>(null);
-  const fade = useRef(new Animated.Value(1)).current;
+
+  // One-shot animations re-fired per slide for a polished entrance.
+  const slideFade = useRef(new Animated.Value(0)).current;
+  const slideRise = useRef(new Animated.Value(20)).current;
+  const heroScale = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(fade, { toValue: 0, duration: 0, useNativeDriver: true }),
-      Animated.timing(fade, {
+    slideFade.setValue(0);
+    slideRise.setValue(18);
+    heroScale.setValue(0.88);
+    Animated.parallel([
+      Animated.timing(slideFade, {
         toValue: 1,
-        duration: 350,
+        duration: 380,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
+      Animated.timing(slideRise, {
+        toValue: 0,
+        duration: 420,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(heroScale, {
+        toValue: 1,
+        speed: 14,
+        bounciness: 7,
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, [index, fade]);
+  }, [index, slideFade, slideRise, heroScale]);
 
   const goTo = (i: number) => {
     const clamped = Math.max(0, Math.min(SLIDES.length - 1, i));
@@ -99,10 +126,11 @@ export default function OnboardingScreen() {
     if (busy) return;
     setBusy(true);
     if (Platform.OS !== "web" && settings.hapticsEnabled) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success,
+      ).catch(() => {});
     }
     await settings.setOnboardingCompleted(true);
-    // Trigger the VPN permission prompt by activating the default mode
     if (engineStatus === "ready") {
       try {
         await setActiveMode("smart");
@@ -123,27 +151,48 @@ export default function OnboardingScreen() {
   };
 
   const isLast = index === SLIDES.length - 1;
+  const isDark = colors.scheme === "dark";
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={skip} hitSlop={10}>
-          <Text style={[styles.skip, { color: colors.mutedForeground }]}>تخطّي</Text>
+      {/* Soft accent halo behind hero */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.bgHalo,
+          {
+            backgroundColor: colors.primary,
+            opacity: isDark ? 0.08 : 0.05,
+            top: insets.top + 30,
+          },
+        ]}
+      />
+
+      <View style={[styles.topBar, { paddingTop: insets.top + 14 }]}>
+        <Pressable onPress={skip} hitSlop={12}>
+          <Text style={[styles.skip, { color: colors.mutedForeground }]}>
+            تخطّي
+          </Text>
         </Pressable>
+
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor:
-                    i === index ? colors.primary : colors.mutedForeground + "55",
-                  width: i === index ? 22 : 8,
-                },
-              ]}
-            />
-          ))}
+          {SLIDES.map((_, i) => {
+            const active = i === index;
+            return (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: active
+                      ? colors.primary
+                      : colors.mutedForeground + "40",
+                    width: active ? 26 : 8,
+                  },
+                ]}
+              />
+            );
+          })}
         </View>
       </View>
 
@@ -157,52 +206,94 @@ export default function OnboardingScreen() {
       >
         {SLIDES.map((slide, i) => (
           <View key={i} style={[styles.slide, { width: WINDOW_W }]}>
-            <Animated.View style={{ opacity: fade, alignItems: "center" }}>
-              <LinearGradient
-                colors={[colors.primarySoft, colors.primarySoft, "transparent"]}
-                style={styles.heroCircle}
+            <Animated.View
+              style={{
+                alignItems: "center",
+                opacity: slideFade,
+                transform: [{ translateY: slideRise }],
+                width: "100%",
+              }}
+            >
+              {/* Hero illustration */}
+              <Animated.View
+                style={[
+                  styles.heroWrap,
+                  { transform: [{ scale: heroScale }] },
+                ]}
               >
-                <View
+                <LinearGradient
+                  colors={[
+                    colors.primary + "22",
+                    colors.primary + "10",
+                    "transparent",
+                  ]}
+                  style={styles.heroGlow}
+                />
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={[
                     styles.heroInner,
-                    { backgroundColor: colors.primary },
+                    {
+                      shadowColor: colors.primary,
+                    },
                   ]}
                 >
-                  <Ionicons name={slide.iconName} size={56} color="#FFFFFF" />
-                </View>
-              </LinearGradient>
+                  <Ionicons
+                    name={slide.iconName}
+                    size={64}
+                    color="#FFFFFF"
+                  />
+                </LinearGradient>
+              </Animated.View>
 
               <Text style={[styles.title, { color: colors.foreground }]}>
                 {slide.title}
               </Text>
-              <Text style={[styles.body, { color: colors.mutedForeground }]}>
+              <Text
+                style={[styles.body, { color: colors.mutedForeground }]}
+              >
                 {slide.body}
               </Text>
 
-              <View style={styles.bullets}>
-                {slide.bullets.map((b, j) => (
+              {/* Horizontal feature chips replace the heavy bullet cards */}
+              <View style={styles.chipsRow}>
+                {slide.features.map((f, j) => (
                   <View
                     key={j}
                     style={[
-                      styles.bulletRow,
+                      styles.chip,
                       {
-                        backgroundColor: colors.cardSolid,
-                        borderColor: colors.cardBorder,
+                        backgroundColor: isDark
+                          ? "rgba(255,255,255,0.04)"
+                          : colors.cardSolid,
+                        borderColor: isDark
+                          ? "rgba(255,255,255,0.08)"
+                          : colors.cardBorder,
                       },
                     ]}
                   >
                     <View
                       style={[
-                        styles.bulletIcon,
+                        styles.chipIcon,
                         { backgroundColor: colors.primarySoft },
                       ]}
                     >
-                      <Ionicons name={b.icon} size={16} color={colors.primary} />
+                      <Ionicons
+                        name={f.icon}
+                        size={15}
+                        color={colors.primary}
+                      />
                     </View>
                     <Text
-                      style={[styles.bulletText, { color: colors.foreground }]}
+                      style={[
+                        styles.chipText,
+                        { color: colors.foreground },
+                      ]}
+                      numberOfLines={1}
                     >
-                      {b.text}
+                      {f.text}
                     </Text>
                   </View>
                 ))}
@@ -212,24 +303,12 @@ export default function OnboardingScreen() {
         ))}
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 18 }]}>
-        {index > 0 ? (
-          <Pressable
-            onPress={() => goTo(index - 1)}
-            style={({ pressed }) => [
-              styles.secondaryBtn,
-              { borderColor: colors.cardBorder, opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Ionicons name="chevron-forward" size={18} color={colors.foreground} />
-            <Text style={[styles.secondaryText, { color: colors.foreground }]}>
-              السابق
-            </Text>
-          </Pressable>
-        ) : (
-          <View style={{ width: 100 }} />
-        )}
-
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: insets.bottom + 22 },
+        ]}
+      >
         <Pressable
           onPress={() => (isLast ? finish() : goTo(index + 1))}
           disabled={busy}
@@ -238,6 +317,7 @@ export default function OnboardingScreen() {
             {
               backgroundColor: colors.primary,
               opacity: pressed || busy ? 0.85 : 1,
+              shadowColor: colors.primary,
             },
           ]}
         >
@@ -245,11 +325,24 @@ export default function OnboardingScreen() {
             {isLast ? "ابدأ الحماية الآن" : "التالي"}
           </Text>
           <Ionicons
-            name={isLast ? "shield-checkmark" : "chevron-back"}
-            size={18}
+            name={isLast ? "shield-checkmark" : "arrow-back"}
+            size={20}
             color="#FFFFFF"
           />
         </Pressable>
+
+        {!isLast ? (
+          <Text
+            style={[
+              styles.swipeHint,
+              { color: colors.mutedForeground },
+            ]}
+          >
+            اسحب لرؤية المزيد
+          </Text>
+        ) : (
+          <View style={{ height: 16 }} />
+        )}
       </View>
     </View>
   );
@@ -257,16 +350,24 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  bgHalo: {
+    position: "absolute",
+    width: 380,
+    height: 380,
+    borderRadius: 190,
+    alignSelf: "center",
+  },
   topBar: {
     flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 22,
-    paddingBottom: 8,
+    paddingHorizontal: 24,
+    paddingBottom: 14,
   },
   skip: {
     fontFamily: "Cairo_600SemiBold",
     fontSize: 13,
+    letterSpacing: 0.3,
   },
   dots: {
     flexDirection: "row-reverse",
@@ -279,99 +380,108 @@ const styles = StyleSheet.create({
   },
   slides: { flex: 1 },
   slide: {
-    paddingHorizontal: 26,
-    paddingTop: 18,
+    paddingHorizontal: 28,
+    paddingTop: 14,
     alignItems: "center",
   },
-  heroCircle: {
-    width: 168,
-    height: 168,
-    borderRadius: 84,
+  heroWrap: {
+    width: 220,
+    height: 220,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 22,
+    marginBottom: 28,
+    marginTop: 18,
+  },
+  heroGlow: {
+    position: "absolute",
+    width: 220,
+    height: 220,
+    borderRadius: 110,
   },
   heroInner: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 132,
+    height: 132,
+    borderRadius: 38,
     alignItems: "center",
     justifyContent: "center",
+    shadowOpacity: 0.35,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12,
+    transform: [{ rotate: "-6deg" }],
   },
   title: {
     fontFamily: "Cairo_900Black",
-    fontSize: 24,
+    fontSize: 26,
     textAlign: "center",
-    marginBottom: 10,
+    writingDirection: "rtl",
+    marginBottom: 12,
+    paddingHorizontal: 8,
   },
   body: {
     fontFamily: "Cairo_500Medium",
-    fontSize: 13,
+    fontSize: 14,
     textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 22,
-    paddingHorizontal: 8,
-  },
-  bullets: {
-    width: "100%",
-    gap: 10,
-  },
-  bulletRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  bulletIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bulletText: {
-    fontFamily: "Cairo_600SemiBold",
-    fontSize: 13,
-    textAlign: "right",
     writingDirection: "rtl",
-    flex: 1,
+    lineHeight: 24,
+    marginBottom: 24,
+    paddingHorizontal: 6,
   },
-  bottomBar: {
+  chipsRow: {
     flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 22,
-    paddingTop: 14,
-  },
-  primaryBtn: {
-    flex: 1,
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    flexWrap: "wrap",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: 14,
+    marginTop: 4,
+  },
+  chip: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 999,
-    marginStart: 12,
+    borderWidth: 1,
+  },
+  chipIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipText: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 12,
+  },
+  bottomBar: {
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    alignItems: "center",
+  },
+  primaryBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 17,
+    paddingHorizontal: 28,
+    borderRadius: 999,
+    width: "100%",
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   primaryText: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 14,
-    letterSpacing: 0.3,
+    fontSize: 15,
+    letterSpacing: 0.4,
   },
-  secondaryBtn: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  secondaryText: {
-    fontFamily: "Cairo_600SemiBold",
-    fontSize: 12,
+  swipeHint: {
+    fontFamily: "Cairo_500Medium",
+    fontSize: 11,
+    marginTop: 14,
+    textAlign: "center",
   },
 });

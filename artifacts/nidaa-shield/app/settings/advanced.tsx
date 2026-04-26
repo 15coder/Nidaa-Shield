@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useDialog } from "@/components/Dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useColors } from "@/hooks/useColors";
@@ -22,12 +22,16 @@ export default function AdvancedScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const settings = useSettings();
+  const dialog = useDialog();
 
   const handleReset = () => {
-    Alert.alert(
-      "إعادة ضبط الإعدادات",
-      "سيتم حذف جميع الإعدادات والقوائم والخوادم المخصّصة. هل أنت متأكد؟",
-      [
+    dialog.show({
+      title: "إعادة ضبط الإعدادات",
+      message:
+        "سيتم حذف جميع الإعدادات والقوائم والخوادم المخصّصة. هل أنت متأكد؟",
+      icon: "warning",
+      iconTint: "danger",
+      buttons: [
         { text: "إلغاء", style: "cancel" },
         {
           text: "إعادة الضبط",
@@ -39,7 +43,7 @@ export default function AdvancedScreen() {
           },
         },
       ],
-    );
+    });
   };
 
   return (

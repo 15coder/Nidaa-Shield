@@ -134,10 +134,6 @@ class NidaaVpnService : VpnService() {
   }
 
   private fun notifySystemSurfaces() {
-    // Refresh all home-screen widgets so they show current state.
-    try { NidaaWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
-    try { NidaaModesWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
-    try { NidaaStatusWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
     // Ask the system to re-bind all our quick-settings tiles so their labels/states update.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
       val tiles = listOf(

@@ -106,12 +106,6 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     ? "rgba(220, 230, 240, 0.85)"
     : "rgba(20, 30, 50, 0.70)";
 
-  // Active "مفعّل" pill — soft translucent in dark mode, solid in light mode
-  const pillBg = isDark ? accentSoftBg : accentPrimary;
-  const pillBorder = isDark ? colors.cardActiveBorder : "transparent";
-  const pillTextColor = isDark ? accentPrimary : "#FFFFFF";
-  const pillDotColor = isDark ? accentPrimary : "#FFFFFF";
-
   return (
     <Animated.View
       style={[
@@ -229,28 +223,12 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                   {mode.title}
                 </Text>
                 {isActive ? (
-                  <View
-                    style={[
-                      styles.activePill,
-                      {
-                        backgroundColor: pillBg,
-                        borderColor: pillBorder,
-                        borderWidth: isDark ? 1 : 0,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.activePillDot,
-                        { backgroundColor: pillDotColor },
-                      ]}
-                    />
-                    <Text
-                      style={[styles.activePillText, { color: pillTextColor }]}
-                    >
-                      مفعّل
-                    </Text>
-                  </View>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={accentPrimary}
+                    style={{ marginStart: 8 }}
+                  />
                 ) : (
                   <Ionicons
                     name="chevron-back"

@@ -13,6 +13,7 @@ import { I18nManager, Platform, StatusBar, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { DialogProvider, ImperativeDialogBridge } from "@/components/Dialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SalatReminder } from "@/components/SalatReminder";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
@@ -87,13 +88,17 @@ function ThemedShell() {
     <GestureHandlerRootView
       style={{ flex: 1, backgroundColor: colors.background }}
     >
-      <VpnProvider>
-        <ThemedStatusBar />
-        <OnboardingGate>
-          <RootLayoutNav />
-        </OnboardingGate>
-        <SalatReminder />
-      </VpnProvider>
+      <DialogProvider>
+        <ImperativeDialogBridge>
+          <VpnProvider>
+            <ThemedStatusBar />
+            <OnboardingGate>
+              <RootLayoutNav />
+            </OnboardingGate>
+            <SalatReminder />
+          </VpnProvider>
+        </ImperativeDialogBridge>
+      </DialogProvider>
     </GestureHandlerRootView>
   );
 }

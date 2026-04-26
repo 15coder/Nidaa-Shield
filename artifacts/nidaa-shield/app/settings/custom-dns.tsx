@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useDialog } from "@/components/Dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { useSettings, type CustomDnsServer } from "@/contexts/SettingsContext";
 import { useColors } from "@/hooks/useColors";
@@ -22,6 +22,7 @@ export default function CustomDnsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const settings = useSettings();
+  const dialog = useDialog();
   const [name, setName] = useState("");
   const [primary, setPrimary] = useState("");
   const [secondary, setSecondary] = useState("");
@@ -37,30 +38,56 @@ export default function CustomDnsScreen() {
     const p = primary.trim();
     const s = secondary.trim();
     if (!n) {
-      Alert.alert("اسم مطلوب", "يرجى إدخال اسم مميّز للخادم.");
+      dialog.show({
+        title: "اسم مطلوب",
+        message: "يرجى إدخال اسم مميّز للخادم.",
+        icon: "create-outline",
+        iconTint: "warning",
+      });
       return;
     }
     if (!IPV4_RE.test(p)) {
-      Alert.alert("عنوان IP غير صحيح", "يجب أن يكون الخادم الأساسي عنوان IPv4 صحيح.");
+      dialog.show({
+        title: "عنوان IP غير صحيح",
+        message: "يجب أن يكون الخادم الأساسي عنوان IPv4 صحيح.",
+        icon: "alert-circle",
+        iconTint: "danger",
+      });
       return;
     }
     if (s && !IPV4_RE.test(s)) {
-      Alert.alert("عنوان IP غير صحيح", "الخادم الاحتياطي يجب أن يكون عنوان IPv4 صحيح أو فارغ.");
+      dialog.show({
+        title: "عنوان IP غير صحيح",
+        message:
+          "الخادم الاحتياطي يجب أن يكون عنوان IPv4 صحيح أو فارغ.",
+        icon: "alert-circle",
+        iconTint: "danger",
+      });
       return;
     }
-    await settings.addCustomDns({ name: n, primary: p, secondary: s || undefined });
+    await settings.addCustomDns({
+      name: n,
+      primary: p,
+      secondary: s || undefined,
+    });
     reset();
   };
 
   const handleRemove = (item: CustomDnsServer) => {
-    Alert.alert("حذف الخادم", `هل تريد حذف "${item.name}"؟`, [
-      { text: "إلغاء", style: "cancel" },
-      {
-        text: "حذف",
-        style: "destructive",
-        onPress: () => settings.removeCustomDns(item.id),
-      },
-    ]);
+    dialog.show({
+      title: "حذف الخادم",
+      message: `هل تريد حذف "${item.name}"؟`,
+      icon: "trash",
+      iconTint: "danger",
+      buttons: [
+        { text: "إلغاء", style: "cancel" },
+        {
+          text: "حذف",
+          style: "destructive",
+          onPress: () => settings.removeCustomDns(item.id),
+        },
+      ],
+    });
   };
 
   return (

@@ -9,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, AppState, Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 
 import {
   getCurrentSession,
@@ -21,6 +21,7 @@ import {
   stopVpnService,
   type VpnStats as NativeVpnStats,
 } from "nidaa-vpn";
+import { showDialog } from "@/components/Dialog";
 import { useSettings } from "@/contexts/SettingsContext";
 
 export type ShieldMode =
@@ -241,7 +242,7 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     };
   }, [engineStatus, isConnected, refreshStats]);
 
-  // Refresh state when app returns to foreground (user may have toggled via tile/widget)
+  // Refresh state when app returns to foreground (user may have toggled via quick-settings tile)
   useEffect(() => {
     const sub = AppState.addEventListener("change", async (next) => {
       if (next === "active" && engineStatus === "ready") {
@@ -312,47 +313,62 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
         if (engineStatus === "ready") await stopVpnService();
         setActiveModeState(null);
         setIsConnected(false);
+        setUptimeSeconds(0);
         return;
       }
 
       if (engineStatus === "missing-build") {
-        Alert.alert(
-          "هذه نسخة معاينة فقط",
-          "لتفعيل الحماية الفعلية على الهاتف يجب تثبيت ملف APK المبني عبر EAS Build (راجع ملف BUILD_FROM_PHONE.md). لا يمكن تفعيل خدمة VPN داخل Expo Go أو متصفح الويب.",
-        );
+        showDialog({
+          title: "هذه نسخة معاينة فقط",
+          message:
+            "لتفعيل الحماية الفعلية على الهاتف يجب تثبيت ملف APK المبني عبر EAS Build. لا يمكن تفعيل خدمة VPN داخل Expo Go أو متصفح الويب.",
+          icon: "construct",
+          iconTint: "warning",
+        });
         return;
       }
 
       if (engineStatus === "ios-unsupported") {
-        Alert.alert(
-          "غير مدعوم حالياً على iOS",
-          "ميزة تغيير DNS على مستوى النظام تتطلب NetworkExtension entitlement من Apple. النسخة المدعومة حالياً هي Android فقط.",
-        );
+        showDialog({
+          title: "غير مدعوم حالياً على iOS",
+          message:
+            "ميزة تغيير DNS على مستوى النظام تتطلب NetworkExtension entitlement من Apple. النسخة المدعومة حالياً هي Android فقط.",
+          icon: "logo-apple",
+          iconTint: "warning",
+        });
         return;
       }
 
       try {
         const granted = await requestPermissionNative();
         if (!granted) {
-          Alert.alert(
-            "إذن الحماية مطلوب",
-            "يجب السماح للتطبيق بإنشاء اتصال آمن لتفعيل الحماية. يُرجى الموافقة عند ظهور النافذة.",
-          );
+          showDialog({
+            title: "إذن الحماية مطلوب",
+            message:
+              "يجب السماح للتطبيق بإنشاء اتصال آمن لتفعيل الحماية. يُرجى الموافقة عند ظهور النافذة.",
+            icon: "shield-half",
+            iconTint: "warning",
+          });
           return;
         }
 
         const config = buildModeConfig(mode);
         const ok = await startVpnService(config);
         if (!ok) {
-          Alert.alert(
-            "تعذر تفعيل الحماية",
-            "حدث خطأ أثناء بدء الحماية. تأكد من عدم وجود تطبيق VPN آخر مفعّل ثم حاول مرة أخرى.",
-          );
+          showDialog({
+            title: "تعذّر تفعيل الحماية",
+            message:
+              "حدث خطأ أثناء بدء الحماية. تأكد من عدم وجود تطبيق VPN آخر مفعّل ثم حاول مرة أخرى.",
+            icon: "alert-circle",
+            iconTint: "danger",
+          });
           return;
         }
 
         setActiveModeState(mode);
         setIsConnected(true);
+        // Reset uptime so switching between modes restarts the counter.
+        setUptimeSeconds(0);
 
         // Success haptic — long, rich pattern so user feels "the shield is up".
         if (Platform.OS !== "web" && settings.hapticsEnabled) {
@@ -361,10 +377,14 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
           ).catch(() => {});
         }
       } catch (e: any) {
-        Alert.alert(
-          "تعذر تفعيل الحماية",
-          e?.message ? `حدث خطأ: ${e.message}` : "حدث خطأ غير متوقع. حاول مرة أخرى.",
-        );
+        showDialog({
+          title: "تعذّر تفعيل الحماية",
+          message: e?.message
+            ? `حدث خطأ: ${e.message}`
+            : "حدث خطأ غير متوقع. حاول مرة أخرى.",
+          icon: "alert-circle",
+          iconTint: "danger",
+        });
       }
     },
     [engineStatus, buildModeConfig, settings.hapticsEnabled],
