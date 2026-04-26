@@ -7,7 +7,6 @@ import {
   Animated,
   Dimensions,
   Easing,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -73,144 +72,6 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function SalahModal({
-  visible,
-  onDismiss,
-  colors,
-}: {
-  visible: boolean;
-  onDismiss: () => void;
-  colors: any;
-}) {
-  const isDark = colors.scheme === "dark";
-  const scaleAnim = useRef(new Animated.Value(0.85)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      scaleAnim.setValue(0.85);
-      fadeAnim.setValue(0);
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          speed: 16,
-          bounciness: 8,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 260,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, scaleAnim, fadeAnim]);
-
-  const handlePress = (answered: boolean) => {
-    if (Platform.OS !== "web") {
-      Haptics.selectionAsync().catch(() => {});
-    }
-    onDismiss();
-  };
-
-  return (
-    <Modal
-      transparent
-      animationType="none"
-      visible={visible}
-      statusBarTranslucent
-      onRequestClose={onDismiss}
-    >
-      <Animated.View
-        style={[styles.modalBackdrop, { opacity: fadeAnim }]}
-      >
-        <Animated.View
-          style={[
-            styles.modalCard,
-            {
-              backgroundColor: isDark ? "#1A1F2E" : "#FFFFFF",
-              borderColor: isDark
-                ? "rgba(255,255,255,0.08)"
-                : "rgba(0,0,0,0.06)",
-              transform: [{ scale: scaleAnim }],
-              opacity: fadeAnim,
-            },
-          ]}
-        >
-          {/* Moon icon */}
-          <View
-            style={[
-              styles.modalIconWrap,
-              { backgroundColor: colors.primary + "22" },
-            ]}
-          >
-            <LinearGradient
-              colors={[colors.primary, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.modalIconGradient}
-            >
-              <Ionicons name="moon" size={30} color="#FFFFFF" />
-            </LinearGradient>
-          </View>
-
-          {/* Title */}
-          <Text style={[styles.modalTitle, { color: colors.foreground }]}>
-            هل صلّيت على محمد اليوم؟
-          </Text>
-
-          {/* Subtitle */}
-          <Text
-            style={[styles.modalSubtitle, { color: colors.mutedForeground }]}
-          >
-            صلوا عليه ﷺ وسلّموا تسليما
-          </Text>
-
-          {/* Yes button */}
-          <Pressable
-            onPress={() => handlePress(true)}
-            style={({ pressed }) => [
-              styles.modalBtnPrimary,
-              {
-                backgroundColor: colors.primary,
-                opacity: pressed ? 0.85 : 1,
-                shadowColor: colors.primary,
-              },
-            ]}
-          >
-            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-            <Text style={[styles.modalBtnTextPrimary]}>نعم</Text>
-          </Pressable>
-
-          {/* No button */}
-          <Pressable
-            onPress={() => handlePress(false)}
-            style={({ pressed }) => [
-              styles.modalBtnSecondary,
-              {
-                backgroundColor: isDark
-                  ? "rgba(255,255,255,0.07)"
-                  : "rgba(0,0,0,0.05)",
-                borderColor: isDark
-                  ? "rgba(255,255,255,0.1)"
-                  : "rgba(0,0,0,0.08)",
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text
-              style={[styles.modalBtnTextSecondary, { color: colors.foreground }]}
-            >
-              لا، سأصلي عليه
-            </Text>
-          </Pressable>
-        </Animated.View>
-      </Animated.View>
-    </Modal>
-  );
-}
-
 export default function OnboardingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -219,7 +80,6 @@ export default function OnboardingScreen() {
   const { setActiveMode, engineStatus } = useVpn();
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [salahModalVisible, setSalahModalVisible] = useState(false);
   const scroller = useRef<ScrollView | null>(null);
 
   const slideFade = useRef(new Animated.Value(0)).current;
@@ -291,16 +151,10 @@ export default function OnboardingScreen() {
 
   const handleNextPress = () => {
     if (isLast) {
-      // Show the prayer reminder after completing all slides
-      setSalahModalVisible(true);
+      finish();
     } else {
       goTo(index + 1);
     }
-  };
-
-  const handleSalahDismiss = () => {
-    setSalahModalVisible(false);
-    finish();
   };
 
   const isLast = index === SLIDES.length - 1;
@@ -308,12 +162,6 @@ export default function OnboardingScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <SalahModal
-        visible={salahModalVisible}
-        onDismiss={handleSalahDismiss}
-        colors={colors}
-      />
-
       {/* Soft accent halo behind hero */}
       <View
         pointerEvents="none"
@@ -641,87 +489,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 14,
     textAlign: "center",
-  },
-  // Modal styles
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  modalCard: {
-    width: "100%",
-    borderRadius: 24,
-    borderWidth: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 16,
-  },
-  modalIconWrap: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 22,
-  },
-  modalIconGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalTitle: {
-    fontFamily: "Cairo_900Black",
-    fontSize: 22,
-    textAlign: "center",
-    writingDirection: "rtl",
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontFamily: "Cairo_500Medium",
-    fontSize: 14,
-    textAlign: "center",
-    writingDirection: "rtl",
-    marginBottom: 28,
-    lineHeight: 22,
-  },
-  modalBtnPrimary: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 999,
-    marginBottom: 12,
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  modalBtnTextPrimary: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 16,
-    color: "#FFFFFF",
-  },
-  modalBtnSecondary: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 999,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalBtnTextSecondary: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 16,
   },
 });
