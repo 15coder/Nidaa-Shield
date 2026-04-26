@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -261,15 +262,26 @@ function ThemeRow({
   colors: ReturnType<typeof useColors>;
 }) {
   const selected = current === mode;
+
+  const handlePress = () => {
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    }
+    onSelect(mode);
+  };
+
   return (
     <Pressable
-      onPress={() => onSelect(mode)}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.row,
         {
-          backgroundColor: colors.cardSolid,
+          backgroundColor: selected
+            ? colors.primarySoft
+            : colors.cardSolid,
           borderColor: selected ? colors.primary : colors.cardBorder,
-          opacity: pressed ? 0.7 : 1,
+          borderWidth: selected ? 1.5 : 1,
+          opacity: pressed ? 0.75 : 1,
         },
       ]}
     >
@@ -277,12 +289,25 @@ function ThemeRow({
         <View
           style={[
             styles.iconWrap,
-            { backgroundColor: colors.primarySoft },
+            {
+              backgroundColor: selected
+                ? colors.primary
+                : colors.primarySoft,
+            },
           ]}
         >
-          <Ionicons name={icon} size={16} color={colors.primary} />
+          <Ionicons
+            name={icon}
+            size={16}
+            color={selected ? "#FFFFFF" : colors.primary}
+          />
         </View>
-        <Text style={[styles.rowLabel, { color: colors.foreground }]}>
+        <Text
+          style={[
+            styles.rowLabel,
+            { color: selected ? colors.primary : colors.foreground },
+          ]}
+        >
           {label}
         </Text>
       </View>
@@ -293,7 +318,9 @@ function ThemeRow({
         ]}
       >
         {selected ? (
-          <View style={[styles.radioDot, { backgroundColor: colors.primary }]} />
+          <View
+            style={[styles.radioDot, { backgroundColor: colors.primary }]}
+          />
         ) : null}
       </View>
     </Pressable>

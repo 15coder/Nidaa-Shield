@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { DialogProvider, ImperativeDialogBridge } from "@/components/Dialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ThemeToast } from "@/components/ThemeToast";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { VpnProvider } from "@/contexts/VpnContext";
 import { useColors } from "@/hooks/useColors";
@@ -94,6 +95,7 @@ function ThemedShell() {
             <OnboardingGate>
               <RootLayoutNav />
             </OnboardingGate>
+            <ThemeToast />
           </VpnProvider>
         </ImperativeDialogBridge>
       </DialogProvider>

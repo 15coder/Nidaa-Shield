@@ -87,7 +87,7 @@ export function StatusOrb() {
   const cardActiveBg = isDark
     ? "rgba(0, 180, 255, 0.06)"
     : "rgba(0, 180, 255, 0.04)";
-  const cardInactiveBg = isDark ? colors.cardSolid : "rgba(245, 247, 250, 0.6)";
+  const cardInactiveBg = colors.cardSolid;
   const cardActiveBorder = isDark
     ? "rgba(0, 180, 255, 0.35)"
     : "rgba(0, 180, 255, 0.25)";

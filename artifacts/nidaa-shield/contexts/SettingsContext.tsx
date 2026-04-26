@@ -42,7 +42,7 @@ export interface SettingsState {
 }
 
 const DEFAULT_STATE: SettingsState = {
-  themeMode: "system",
+  themeMode: "light",
   accentColor: "cyan",
   customDnsServers: [],
   selectedCustomDnsId: null,

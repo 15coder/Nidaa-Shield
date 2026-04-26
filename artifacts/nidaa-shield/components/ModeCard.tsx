@@ -108,17 +108,17 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   const accentSoft = colors.primarySoft;
   const activeBorder = colors.cardActiveBorder;
 
-  const cardBg = isDark ? "#161C24" : "#F4F7FB";
+  const cardBg = colors.cardSolid;
   const activeBg = isDark
-    ? "rgba(0, 180, 255, 0.07)"
-    : "rgba(0, 180, 255, 0.05)";
+    ? "rgba(0, 180, 255, 0.08)"
+    : "rgba(0, 180, 255, 0.07)";
 
   const inactiveIconBg = isDark
-    ? "rgba(255,255,255,0.055)"
-    : "rgba(0,0,0,0.045)";
+    ? "rgba(255,255,255,0.06)"
+    : "rgba(0,0,0,0.05)";
   const inactiveIconBorder = isDark
-    ? "rgba(255,255,255,0.09)"
-    : "rgba(0,0,0,0.07)";
+    ? "rgba(255,255,255,0.10)"
+    : "rgba(0,0,0,0.08)";
 
   return (
     <Animated.View

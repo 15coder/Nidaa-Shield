@@ -132,18 +132,18 @@ export function getAccent(scheme: "light" | "dark", accent: AccentName): AccentT
 
 const colors = {
   light: {
-    text: "#0A0A0A",
+    text: "#0D1117",
     tint: "#00B4FF",
 
-    background: "#FFFFFF",
-    foreground: "#0A0A0A",
+    background: "#EEF2F7",
+    foreground: "#0D1117",
 
-    card: "rgba(246, 248, 251, 0.75)",
-    cardForeground: "#0A0A0A",
-    cardBorder: "rgba(0, 0, 0, 0.06)",
-    cardSolid: "#F6F8FB",
+    card: "rgba(255, 255, 255, 0.90)",
+    cardForeground: "#0D1117",
+    cardBorder: "rgba(0, 0, 0, 0.07)",
+    cardSolid: "#FFFFFF",
 
-    cardActive: "rgba(255, 255, 255, 0.96)",
+    cardActive: "rgba(255, 255, 255, 0.98)",
     cardActiveBorder: "rgba(0, 180, 255, 0.55)",
     cardActiveGlow: "rgba(0, 180, 255, 0.45)",
 
@@ -151,19 +151,19 @@ const colors = {
     primaryDark: "#0090CC",
     primaryForeground: "#FFFFFF",
     primaryGlow: "rgba(0, 180, 255, 0.40)",
-    primarySoft: "rgba(0, 180, 255, 0.10)",
+    primarySoft: "rgba(0, 180, 255, 0.12)",
 
-    secondary: "#F4F4F6",
-    secondaryForeground: "#1A1A1A",
+    secondary: "#E6EBF2",
+    secondaryForeground: "#1A2332",
 
-    muted: "#F0F0F2",
-    mutedForeground: "#6B6B72",
+    muted: "#DDE3ED",
+    mutedForeground: "#64748B",
 
-    accent: "#E8E8EC",
-    accentForeground: "#1A1A1A",
+    accent: "#D8E0EC",
+    accentForeground: "#1A2332",
 
-    silver: "#C0C0C8",
-    silverGlow: "rgba(192, 192, 200, 0.35)",
+    silver: "#A8B4C4",
+    silverGlow: "rgba(168, 180, 196, 0.35)",
 
     destructive: "#C8102E",
     destructiveForeground: "#FFFFFF",
@@ -171,10 +171,10 @@ const colors = {
     success: "#1B7A4B",
     successForeground: "#FFFFFF",
 
-    border: "#E8E8EC",
-    input: "#E8E8EC",
+    border: "#D8E0EC",
+    input: "#D8E0EC",
 
-    overlay: "rgba(10, 10, 14, 0.55)",
+    overlay: "rgba(10, 14, 20, 0.50)",
 
     statusBarStyle: "dark-content" as "dark-content" | "light-content",
   },
