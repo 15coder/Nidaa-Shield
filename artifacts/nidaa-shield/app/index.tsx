@@ -3,6 +3,7 @@ import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AboutModal } from "@/components/AboutModal";
+import { EngineBanner } from "@/components/EngineBanner";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModeCard } from "@/components/ModeCard";
@@ -37,6 +38,8 @@ export default function HomeScreen() {
         overScrollMode="always"
       >
         <Header />
+
+        <EngineBanner />
 
         {/* Status section */}
         <View style={styles.statusSection}>

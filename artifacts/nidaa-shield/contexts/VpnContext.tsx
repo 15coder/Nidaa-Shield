@@ -85,10 +85,16 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   },
 };
 
+export type EngineStatus =
+  | "ready"          // Native VPN engine loaded — full functionality available
+  | "missing-build" // Running in Expo Go or web — native module not bundled
+  | "ios-unsupported"; // iOS — system-wide DNS not supported here yet
+
 interface VpnState {
   activeMode: ShieldMode;
   isConnected: boolean;
   uptimeSeconds: number;
+  engineStatus: EngineStatus;
 }
 
 interface VpnContextValue extends VpnState {
@@ -100,11 +106,22 @@ const STORAGE_KEY = "@nidaa-shield/state-v1";
 
 const VpnContext = createContext<VpnContextValue | undefined>(undefined);
 
+function computeEngineStatus(): EngineStatus {
+  if (Platform.OS === "android") {
+    return isNativeAvailable ? "ready" : "missing-build";
+  }
+  if (Platform.OS === "ios") {
+    return "ios-unsupported";
+  }
+  return "missing-build";
+}
+
 export function VpnProvider({ children }: { children: React.ReactNode }) {
   const [activeMode, setActiveModeState] = useState<ShieldMode>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const engineStatus = useMemo(computeEngineStatus, []);
 
   useEffect(() => {
     (async () => {
@@ -141,76 +158,91 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     if (!isConnected) setUptimeSeconds(0);
   }, [isConnected]);
 
-  const setActiveMode = useCallback(async (mode: ShieldMode) => {
-    if (mode === null) {
-      if (Platform.OS === "android" && isNativeAvailable) {
-        await stopVpnService();
+  const setActiveMode = useCallback(
+    async (mode: ShieldMode) => {
+      if (mode === null) {
+        if (engineStatus === "ready") {
+          await stopVpnService();
+        }
+        setActiveModeState(null);
+        setIsConnected(false);
+        return;
       }
-      setActiveModeState(null);
-      setIsConnected(false);
-      return;
-    }
 
-    const def = MODES[mode];
-
-    if (Platform.OS !== "android" || !isNativeAvailable) {
-      // Web preview / iOS: simulate UI only
-      setActiveModeState(mode);
-      setIsConnected(true);
-      return;
-    }
-
-    try {
-      const granted = await requestPermissionNative();
-      if (!granted) {
+      if (engineStatus === "missing-build") {
         Alert.alert(
-          "إذن الحماية مطلوب",
-          "يجب السماح للتطبيق بإنشاء اتصال آمن لتفعيل الحماية. يُرجى الموافقة عند ظهور النافذة.",
+          "هذه نسخة معاينة فقط",
+          "لتفعيل الحماية الفعلية على الهاتف يجب تثبيت ملف APK المبني عبر EAS Build (راجع ملف BUILD_FROM_PHONE.md). لا يمكن تفعيل خدمة VPN داخل Expo Go أو متصفح الويب.",
         );
         return;
       }
 
-      const ok = await startVpnService(
-        def.title,
-        def.primaryDns,
-        def.secondaryDns ?? null,
-      );
+      if (engineStatus === "ios-unsupported") {
+        Alert.alert(
+          "غير مدعوم حالياً على iOS",
+          "ميزة تغيير DNS على مستوى النظام تتطلب NetworkExtension entitlement من Apple. النسخة المدعومة حالياً هي Android فقط.",
+        );
+        return;
+      }
 
-      if (!ok) {
+      const def = MODES[mode];
+
+      try {
+        const granted = await requestPermissionNative();
+        if (!granted) {
+          Alert.alert(
+            "إذن الحماية مطلوب",
+            "يجب السماح للتطبيق بإنشاء اتصال آمن لتفعيل الحماية. يُرجى الموافقة عند ظهور النافذة.",
+          );
+          return;
+        }
+
+        const ok = await startVpnService(
+          def.title,
+          def.primaryDns,
+          def.secondaryDns ?? null,
+        );
+
+        if (!ok) {
+          Alert.alert(
+            "تعذر تفعيل الحماية",
+            "حدث خطأ أثناء بدء الحماية. تأكد من عدم وجود تطبيق VPN آخر مفعّل، ثم حاول مرة أخرى.",
+          );
+          return;
+        }
+
+        setActiveModeState(mode);
+        setIsConnected(true);
+      } catch (e: any) {
         Alert.alert(
           "تعذر تفعيل الحماية",
-          "حدث خطأ أثناء بدء الحماية. حاول مرة أخرى.",
+          e?.message
+            ? `حدث خطأ: ${e.message}`
+            : "حدث خطأ غير متوقع. حاول مرة أخرى.",
         );
-        return;
       }
-
-      setActiveModeState(mode);
-      setIsConnected(true);
-    } catch {
-      Alert.alert(
-        "تعذر تفعيل الحماية",
-        "حدث خطأ غير متوقع. حاول مرة أخرى.",
-      );
-    }
-  }, []);
+    },
+    [engineStatus],
+  );
 
   const disconnect = useCallback(async () => {
-    if (Platform.OS === "android" && isNativeAvailable) {
+    if (engineStatus === "ready") {
       await stopVpnService();
     }
     setActiveModeState(null);
     setIsConnected(false);
-  }, []);
+  }, [engineStatus]);
 
   const value = useMemo<VpnContextValue>(
     () => ({
       activeMode,
       isConnected,
       uptimeSeconds,
+      engineStatus,
       setActiveMode,
       disconnect,
     }),
-    [activeMode, isConnected, uptimeSeconds, setActiveMode, disconnect],
+    [activeMode, isConnected, uptimeSeconds, engineStatus, setActiveMode, disconnect],
   );
 
   return <VpnContext.Provider value={value}>{children}</VpnContext.Provider>;
