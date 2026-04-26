@@ -446,6 +446,9 @@ importers:
       expo-web-browser:
         specifier: ~15.0.10
         version: 15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
+      nidaa-vpn:
+        specifier: file:./modules/nidaa-vpn
+        version: file:artifacts/nidaa-shield/modules/nidaa-vpn
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -4133,6 +4136,9 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
       react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+
+  nidaa-vpn@file:artifacts/nidaa-shield/modules/nidaa-vpn:
+    resolution: {directory: artifacts/nidaa-shield/modules/nidaa-vpn, type: directory}
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -9955,6 +9961,8 @@ snapshots:
     dependencies:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
+
+  nidaa-vpn@file:artifacts/nidaa-shield/modules/nidaa-vpn: {}
 
   node-fetch@2.7.0:
     dependencies:
