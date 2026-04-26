@@ -111,12 +111,13 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
       style={[
         styles.outer,
         {
+          backgroundColor: "transparent",
           transform: [{ scale: press }],
-          shadowColor: isActive ? colors.primaryGlow : "#000",
-          shadowOpacity: isActive ? 0.45 : (isDark ? 0.25 : 0.05),
-          shadowRadius: isActive ? 20 : 10,
-          shadowOffset: { width: 0, height: isActive ? 8 : 3 },
-          elevation: isActive ? 10 : 3,
+          shadowColor: isActive ? colors.primaryGlow : "transparent",
+          shadowOpacity: isActive ? 0.45 : 0,
+          shadowRadius: isActive ? 20 : 0,
+          shadowOffset: { width: 0, height: isActive ? 8 : 0 },
+          elevation: isActive ? 10 : 0,
         },
       ]}
     >
@@ -272,7 +273,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     overflow: "hidden",
-    minHeight: 78,
     justifyContent: "center",
   },
   row: {
