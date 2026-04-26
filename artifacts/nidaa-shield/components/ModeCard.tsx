@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useRef } from "react";
 import {
@@ -25,27 +25,20 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   const colors = useColors();
   const pulse = useRef(new Animated.Value(1)).current;
   const press = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(glow, {
-      toValue: isActive ? 1 : 0,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-
     if (isActive) {
       const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulse, {
-            toValue: 1.1,
-            duration: 1100,
+            toValue: 1.08,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulse, {
             toValue: 1,
-            duration: 1100,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -56,7 +49,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     } else {
       pulse.setValue(1);
     }
-  }, [isActive, pulse, glow]);
+  }, [isActive, pulse]);
 
   const handlePressIn = () => {
     Animated.spring(press, {
@@ -89,9 +82,9 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         {
           transform: [{ scale: press }],
           shadowColor: isActive ? colors.primaryGlow : "#000",
-          shadowOpacity: isActive ? 0.5 : 0.05,
-          shadowRadius: isActive ? 18 : 10,
-          shadowOffset: { width: 0, height: isActive ? 6 : 3 },
+          shadowOpacity: isActive ? 0.45 : 0.05,
+          shadowRadius: isActive ? 20 : 10,
+          shadowOffset: { width: 0, height: isActive ? 8 : 3 },
           elevation: isActive ? 10 : 3,
         },
       ]}
@@ -104,15 +97,10 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         accessibilityState={{ selected: isActive }}
         style={styles.pressable}
       >
-        <BlurView
-          intensity={isActive ? 70 : 30}
-          tint="light"
+        <View
           style={[
             styles.card,
             {
-              backgroundColor: isActive
-                ? colors.cardActive
-                : colors.card,
               borderColor: isActive
                 ? colors.cardActiveBorder
                 : colors.cardBorder,
@@ -120,36 +108,72 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
             },
           ]}
         >
+          {/* Background fill: inactive = soft gray; active = blue gradient */}
+          {isActive ? (
+            <LinearGradient
+              colors={["#EAF7FF", "#F4FBFF", "#FFFFFF"]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: "#F6F8FB" },
+              ]}
+            />
+          )}
+
           <View style={styles.row}>
             {/* Icon block */}
             <View style={styles.iconWrap}>
               <Animated.View
                 style={[
-                  styles.iconCircle,
+                  styles.iconShadowWrap,
                   {
-                    backgroundColor: isActive
-                      ? colors.primary
-                      : "rgba(0,0,0,0.04)",
-                    borderColor: isActive
-                      ? "transparent"
-                      : "rgba(0,0,0,0.06)",
                     transform: [{ scale: pulse }],
-                    shadowColor: isActive ? colors.primaryGlow : "transparent",
-                    shadowOpacity: isActive ? 0.8 : 0,
-                    shadowRadius: isActive ? 12 : 0,
+                    shadowColor: isActive
+                      ? colors.primaryGlow
+                      : "transparent",
+                    shadowOpacity: isActive ? 0.85 : 0,
+                    shadowRadius: isActive ? 14 : 0,
                     shadowOffset: { width: 0, height: 0 },
+                    elevation: isActive ? 8 : 0,
                   },
                 ]}
               >
-                <Ionicons
-                  name={
-                    (isActive
-                      ? mode.iconName
-                      : (`${mode.iconName}-outline` as never)) as never
-                  }
-                  size={22}
-                  color={isActive ? "#FFFFFF" : colors.foreground}
-                />
+                {isActive ? (
+                  <LinearGradient
+                    colors={["#33C5FF", "#00B4FF", "#0090CC"]}
+                    start={{ x: 0.2, y: 0 }}
+                    end={{ x: 0.8, y: 1 }}
+                    style={styles.iconCircle}
+                  >
+                    <Ionicons
+                      name={mode.iconName as never}
+                      size={22}
+                      color="#FFFFFF"
+                    />
+                  </LinearGradient>
+                ) : (
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      {
+                        backgroundColor: "#FFFFFF",
+                        borderWidth: 1,
+                        borderColor: "rgba(0,0,0,0.06)",
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={`${mode.iconName}-outline` as never}
+                      size={22}
+                      color={colors.foreground}
+                    />
+                  </View>
+                )}
               </Animated.View>
             </View>
 
@@ -160,74 +184,51 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                   style={[
                     styles.title,
                     {
-                      color: isActive ? colors.primaryDark : colors.foreground,
-                      opacity: isActive ? 1 : 0.85,
+                      color: isActive
+                        ? colors.primaryDark
+                        : colors.foreground,
                     },
                   ]}
                   numberOfLines={1}
                 >
                   {mode.title}
                 </Text>
-                <View
-                  style={[
-                    styles.protocolPill,
-                    {
-                      backgroundColor: isActive
-                        ? colors.primarySoft
-                        : "rgba(0,0,0,0.04)",
-                    },
-                  ]}
-                >
-                  <Text
+                {isActive ? (
+                  <View
                     style={[
-                      styles.protocolText,
-                      {
-                        color: isActive
-                          ? colors.primary
-                          : colors.mutedForeground,
-                      },
+                      styles.activePill,
+                      { backgroundColor: colors.primary },
                     ]}
                   >
-                    {mode.protocol}
-                  </Text>
-                </View>
+                    <View style={styles.activePillDot} />
+                    <Text style={styles.activePillText}>مفعّل</Text>
+                  </View>
+                ) : (
+                  <Ionicons
+                    name="chevron-back"
+                    size={16}
+                    color={colors.mutedForeground}
+                    style={{ marginStart: 8, opacity: 0.5 }}
+                  />
+                )}
               </View>
 
               <Text
                 style={[
                   styles.description,
-                  { color: colors.mutedForeground },
+                  {
+                    color: isActive
+                      ? "rgba(0, 80, 120, 0.75)"
+                      : colors.mutedForeground,
+                  },
                 ]}
                 numberOfLines={2}
               >
                 {mode.shortDescription}
               </Text>
-
-              <View style={styles.metaRow}>
-                <Text
-                  style={[styles.dnsText, { color: colors.mutedForeground }]}
-                >
-                  {mode.primaryDns}
-                </Text>
-                {isActive && (
-                  <View style={styles.activeIndicator}>
-                    <View
-                      style={[
-                        styles.activeDot,
-                        { backgroundColor: colors.primary },
-                      ]}
-                    />
-                    <Text
-                      style={[styles.activeLabel, { color: colors.primary }]}
-                    >
-                      مفعّل
-                    </Text>
-                  </View>
-                )}
-              </View>
             </View>
           </View>
-        </BlurView>
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -235,16 +236,16 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
 
 const styles = StyleSheet.create({
   outer: {
-    borderRadius: 28,
+    borderRadius: 22,
   },
   pressable: {
-    borderRadius: 28,
+    borderRadius: 22,
     overflow: "hidden",
   },
   card: {
-    borderRadius: 24,
+    borderRadius: 22,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
     overflow: "hidden",
     minHeight: 78,
     justifyContent: "center",
@@ -254,18 +255,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconWrap: {
+    width: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconShadowWrap: {
     width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
   iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    elevation: 4,
   },
   textWrap: {
     flex: 1,
@@ -294,39 +300,33 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 0.5,
   },
+  activePill: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    marginStart: 8,
+  },
+  activePillDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#FFFFFF",
+  },
+  activePillText: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 10,
+    color: "#FFFFFF",
+    letterSpacing: 0.4,
+  },
   description: {
     fontFamily: "Cairo_500Medium",
     fontSize: 11,
     lineHeight: 16,
     textAlign: "right",
     writingDirection: "rtl",
-    marginTop: 2,
-  },
-  metaRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
     marginTop: 4,
-  },
-  dnsText: {
-    fontFamily: "Cairo_500Medium",
-    fontSize: 10,
-    fontVariant: ["tabular-nums"],
-    opacity: 0.7,
-  },
-  activeIndicator: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 4,
-  },
-  activeDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-  },
-  activeLabel: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 10,
-    letterSpacing: 0.3,
   },
 });

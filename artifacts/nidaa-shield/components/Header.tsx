@@ -25,7 +25,7 @@ export function Header() {
             style={[styles.statusDot, { backgroundColor: colors.primary }]}
           />
           <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
-            محلي · بدون حساب
+            نداء-شايلد
           </Text>
         </View>
 

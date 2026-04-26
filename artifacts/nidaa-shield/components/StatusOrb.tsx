@@ -15,11 +15,6 @@ import {
 import { useColors } from "@/hooks/useColors";
 import { MODES, useVpn } from "@/contexts/VpnContext";
 
-function formatBytes(n: number) {
-  if (n < 1024) return `${n} ب`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} ك.ب`;
-  return `${(n / (1024 * 1024)).toFixed(2)} م.ب`;
-}
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -31,8 +26,7 @@ function formatTime(s: number) {
 
 export function StatusOrb() {
   const colors = useColors();
-  const { activeMode, isConnected, bytesBlocked, uptimeSeconds, disconnect } =
-    useVpn();
+  const { activeMode, isConnected, uptimeSeconds, disconnect } = useVpn();
   const ring = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
 
@@ -196,30 +190,17 @@ export function StatusOrb() {
         </View>
       </View>
 
-      {/* Metrics row + control */}
+      {/* Bottom row: uptime + disconnect */}
       <View style={styles.bottomRow}>
-        <View style={styles.metricsRow}>
-          <View style={styles.metricBox}>
-            <Text style={[styles.metricValue, { color: colors.foreground }]}>
-              {isConnected ? formatTime(uptimeSeconds) : "00:00:00"}
-            </Text>
-            <Text
-              style={[styles.metricLabel, { color: colors.mutedForeground }]}
-            >
-              مدة الاتصال
-            </Text>
-          </View>
-          <View style={styles.metricDivider} />
-          <View style={styles.metricBox}>
-            <Text style={[styles.metricValue, { color: colors.foreground }]}>
-              {isConnected ? formatBytes(bytesBlocked) : "0 ب"}
-            </Text>
-            <Text
-              style={[styles.metricLabel, { color: colors.mutedForeground }]}
-            >
-              تم حظره
-            </Text>
-          </View>
+        <View style={styles.metricBox}>
+          <Text
+            style={[styles.metricLabel, { color: colors.mutedForeground }]}
+          >
+            مدة الاتصال
+          </Text>
+          <Text style={[styles.metricValue, { color: colors.foreground }]}>
+            {isConnected ? formatTime(uptimeSeconds) : "00:00:00"}
+          </Text>
         </View>
 
         <Pressable
@@ -337,28 +318,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.06)",
   },
-  metricsRow: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-  },
   metricBox: {
     alignItems: "flex-end",
   },
-  metricDivider: {
-    width: 1,
-    height: 22,
-    backgroundColor: "rgba(0,0,0,0.08)",
-    marginHorizontal: 12,
-  },
   metricValue: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 13,
+    fontSize: 15,
     fontVariant: ["tabular-nums"],
+    marginTop: 2,
   },
   metricLabel: {
     fontFamily: "Cairo_500Medium",
     fontSize: 10,
-    marginTop: 1,
   },
   disconnectBtn: {
     flexDirection: "row-reverse",
