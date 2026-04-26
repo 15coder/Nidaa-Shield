@@ -21,8 +21,10 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **nidaa-shield** (`artifacts/nidaa-shield`) — Expo mobile app "نداء شايلد".
   - Arabic-only RTL UI, Cairo font, light mode only, white background.
   - Glassmorphism mode cards (Smart Shield / Gaming Turbo / Family Guard / Military Privacy).
-  - Local-only state via AsyncStorage (no cloud).
-  - VPN engine logic stubbed at the React/AsyncStorage layer; native Android `VpnService` + DNS interception (port 53) must be implemented in native Android code outside Replit.
+  - Local-only state via AsyncStorage (no cloud, no accounts).
+  - **Native Android VpnService** implemented as a local Expo module at `artifacts/nidaa-shield/modules/nidaa-vpn/` (Kotlin). Installs system-wide DNS overrides without packet forwarding by combining `addAddress` + dummy unused route (`198.51.100.0/30`) + `addDnsServer` + foreground notification. No redirect to system settings; everything happens in-app after the standard Android VPN consent dialog.
+  - Standalone `package.json` (no workspace catalog refs) so EAS Build works directly from `artifacts/nidaa-shield` as base directory. Built via EAS Build → GitHub (`15coder/Nidaa-Shield`, branch `main`, profile `preview`). Cannot run in Expo Go — requires custom dev client / EAS APK.
+  - iOS implementation is a no-op stub; Android is the only supported target.
 
 ## Key Commands
 

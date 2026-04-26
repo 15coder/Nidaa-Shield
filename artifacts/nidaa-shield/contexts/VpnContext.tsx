@@ -1,6 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Clipboard from "expo-clipboard";
-import * as IntentLauncher from "expo-intent-launcher";
 import React, {
   createContext,
   useCallback,
@@ -9,7 +7,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import { Alert, Platform } from "react-native";
+
+import {
+  isNativeAvailable,
+  requestVpnPermission as requestPermissionNative,
+  startVpnService,
+  stopVpnService,
+} from "nidaa-vpn";
 
 export type ShieldMode =
   | "smart"
@@ -25,7 +30,6 @@ export interface ModeDefinition {
   longDescription: string;
   primaryDns: string;
   secondaryDns?: string;
-  privateDnsHostname: string;
   protocol: "DNS" | "DoH" | "DoT";
   iconName:
     | "shield-checkmark"
@@ -43,7 +47,6 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
       "حظر الإعلانات على مستوى النظام بأكمله — بما فيها إعلانات تطبيقات التواصل ومنع تتبع البيانات بتقنية DNS Sinkholing.",
     primaryDns: "94.140.14.14",
     secondaryDns: "94.140.15.15",
-    privateDnsHostname: "dns.adguard-dns.com",
     protocol: "DNS",
     iconName: "shield-checkmark",
   },
@@ -55,7 +58,6 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
       "توجيه منخفض التأخير عبر شبكة Cloudflare لتقليل البينج وضمان استقرار ألعاب الأونلاين كببجي وفري فاير.",
     primaryDns: "1.1.1.1",
     secondaryDns: "1.0.0.1",
-    privateDnsHostname: "1dot1dot1dot1.cloudflare-dns.com",
     protocol: "DNS",
     iconName: "game-controller",
   },
@@ -67,7 +69,6 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
       "حجب فوري للمحتوى غير اللائق والمواقع الضارة عبر CleanBrowsing لضمان بيئة تصفح آمنة للأسرة.",
     primaryDns: "185.228.168.168",
     secondaryDns: "185.228.169.168",
-    privateDnsHostname: "family-filter-dns.cleanbrowsing.org",
     protocol: "DNS",
     iconName: "people",
   },
@@ -78,7 +79,7 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
     longDescription:
       "تشفير كامل لطلبات الـ DNS عبر بروتوكول DNS-over-HTTPS لمنع مزود الخدمة من تتبع نشاطك.",
     primaryDns: "1.1.1.1",
-    privateDnsHostname: "1dot1dot1dot1.cloudflare-dns.com",
+    secondaryDns: "1.0.0.1",
     protocol: "DoH",
     iconName: "lock-closed",
   },
@@ -93,62 +94,11 @@ interface VpnState {
 interface VpnContextValue extends VpnState {
   setActiveMode: (mode: ShieldMode) => Promise<void>;
   disconnect: () => Promise<void>;
-  openPrivateDnsSettings: (mode: Exclude<ShieldMode, null>) => Promise<void>;
 }
 
 const STORAGE_KEY = "@nidaa-shield/state-v1";
 
 const VpnContext = createContext<VpnContextValue | undefined>(undefined);
-
-async function openAndroidPrivateDnsSettings() {
-  if (Platform.OS !== "android") return;
-  const candidates = [
-    "android.settings.WIRELESS_SETTINGS",
-    "android.settings.NETWORK_OPERATOR_SETTINGS",
-    "android.settings.SETTINGS",
-  ];
-  for (const action of candidates) {
-    try {
-      await IntentLauncher.startActivityAsync(action);
-      return;
-    } catch {
-      // try next
-    }
-  }
-  try {
-    await Linking.openSettings();
-  } catch {}
-}
-
-async function applyPrivateDnsForMode(mode: Exclude<ShieldMode, null>) {
-  const def = MODES[mode];
-  try {
-    await Clipboard.setStringAsync(def.privateDnsHostname);
-  } catch {}
-
-  if (Platform.OS !== "android") {
-    Alert.alert(
-      def.title,
-      `هذا الوضع يفعّل الحماية عبر تقنية Private DNS على هاتف Android فقط.\n\nالخادم المعتمد:\n${def.privateDnsHostname}`,
-    );
-    return;
-  }
-
-  Alert.alert(
-    `تفعيل ${def.title}`,
-    `تم نسخ اسم الخادم تلقائياً:\n\n${def.privateDnsHostname}\n\nالخطوات:\n١. اضغط "فتح الإعدادات"\n٢. ادخل إلى: الشبكة والإنترنت ← Private DNS\n٣. اختر "اسم مضيف موفّر Private DNS"\n٤. الصق الاسم واضغط حفظ\n\nالحماية ستعمل فوراً على كل التطبيقات.`,
-    [
-      { text: "لاحقاً", style: "cancel" },
-      {
-        text: "فتح الإعدادات",
-        style: "default",
-        onPress: () => {
-          openAndroidPrivateDnsSettings();
-        },
-      },
-    ],
-  );
-}
 
 export function VpnProvider({ children }: { children: React.ReactNode }) {
   const [activeMode, setActiveModeState] = useState<ShieldMode>(null);
@@ -164,7 +114,6 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(raw) as Partial<VpnState>;
           if (parsed.activeMode) {
             setActiveModeState(parsed.activeMode);
-            setIsConnected(true);
           }
         }
       } catch {}
@@ -193,40 +142,65 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
   }, [isConnected]);
 
   const setActiveMode = useCallback(async (mode: ShieldMode) => {
-    setActiveModeState(mode);
-    setIsConnected(mode !== null);
-    if (mode !== null) {
-      await applyPrivateDnsForMode(mode);
+    if (mode === null) {
+      if (Platform.OS === "android" && isNativeAvailable) {
+        await stopVpnService();
+      }
+      setActiveModeState(null);
+      setIsConnected(false);
+      return;
     }
-  }, []);
 
-  const disconnect = useCallback(async () => {
-    setActiveModeState(null);
-    setIsConnected(false);
-    if (Platform.OS === "android") {
+    const def = MODES[mode];
+
+    if (Platform.OS !== "android" || !isNativeAvailable) {
+      // Web preview / iOS: simulate UI only
+      setActiveModeState(mode);
+      setIsConnected(true);
+      return;
+    }
+
+    try {
+      const granted = await requestPermissionNative();
+      if (!granted) {
+        Alert.alert(
+          "إذن الحماية مطلوب",
+          "يجب السماح للتطبيق بإنشاء اتصال آمن لتفعيل الحماية. يُرجى الموافقة عند ظهور النافذة.",
+        );
+        return;
+      }
+
+      const ok = await startVpnService(
+        def.title,
+        def.primaryDns,
+        def.secondaryDns ?? null,
+      );
+
+      if (!ok) {
+        Alert.alert(
+          "تعذر تفعيل الحماية",
+          "حدث خطأ أثناء بدء الحماية. حاول مرة أخرى.",
+        );
+        return;
+      }
+
+      setActiveModeState(mode);
+      setIsConnected(true);
+    } catch {
       Alert.alert(
-        "إيقاف الحماية",
-        'لإيقاف الحماية فعلياً:\n\nادخل إلى: الشبكة والإنترنت ← Private DNS\nثم اختر "تلقائي" أو "إيقاف".',
-        [
-          { text: "حسناً", style: "cancel" },
-          {
-            text: "فتح الإعدادات",
-            style: "default",
-            onPress: () => {
-              openAndroidPrivateDnsSettings();
-            },
-          },
-        ],
+        "تعذر تفعيل الحماية",
+        "حدث خطأ غير متوقع. حاول مرة أخرى.",
       );
     }
   }, []);
 
-  const openPrivateDnsSettings = useCallback(
-    async (mode: Exclude<ShieldMode, null>) => {
-      await applyPrivateDnsForMode(mode);
-    },
-    [],
-  );
+  const disconnect = useCallback(async () => {
+    if (Platform.OS === "android" && isNativeAvailable) {
+      await stopVpnService();
+    }
+    setActiveModeState(null);
+    setIsConnected(false);
+  }, []);
 
   const value = useMemo<VpnContextValue>(
     () => ({
@@ -235,16 +209,8 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
       uptimeSeconds,
       setActiveMode,
       disconnect,
-      openPrivateDnsSettings,
     }),
-    [
-      activeMode,
-      isConnected,
-      uptimeSeconds,
-      setActiveMode,
-      disconnect,
-      openPrivateDnsSettings,
-    ],
+    [activeMode, isConnected, uptimeSeconds, setActiveMode, disconnect],
   );
 
   return <VpnContext.Provider value={value}>{children}</VpnContext.Provider>;

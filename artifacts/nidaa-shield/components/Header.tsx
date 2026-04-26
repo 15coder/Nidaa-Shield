@@ -35,18 +35,6 @@ export function Header() {
         />
       </View>
 
-      {/* Spacer between logo and title */}
-      <View style={styles.spacer} />
-
-      {/* Title block */}
-      <View style={styles.titleBlock}>
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          نداء شايلد
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          نظام الحماية المحلي
-        </Text>
-      </View>
     </View>
   );
 }

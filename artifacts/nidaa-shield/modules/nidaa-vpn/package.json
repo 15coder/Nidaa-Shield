@@ -1,0 +1,7 @@
+{
+  "name": "nidaa-vpn",
+  "version": "1.0.0",
+  "description": "Local Expo module providing native Android VpnService for system-wide DNS protection",
+  "main": "index.ts",
+  "private": true
+}
