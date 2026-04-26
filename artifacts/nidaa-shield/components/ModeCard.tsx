@@ -146,13 +146,13 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
               colors={activeGradient}
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
-              style={StyleSheet.absoluteFill}
+              style={[StyleSheet.absoluteFill, { borderRadius: 22 }]}
             />
           ) : (
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: inactiveBg },
+                { backgroundColor: inactiveBg, borderRadius: 22 },
               ]}
             />
           )}
