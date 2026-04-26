@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -6,6 +7,9 @@ import { useVpn } from "@/contexts/VpnContext";
 
 export function EngineBanner() {
   const { engineStatus } = useVpn();
+  const appVersion = Constants.expoConfig?.version ?? "?";
+  const buildNumber =
+    (Constants.expoConfig?.android?.versionCode ?? "?") as number | string;
 
   if (engineStatus === "ready") {
     return (
@@ -17,7 +21,7 @@ export function EngineBanner() {
       >
         <Ionicons name="checkmark-circle" size={14} color="#00964F" />
         <Text style={[styles.text, { color: "#00964F" }]}>
-          محرك الحماية الأصلي جاهز
+          محرك الحماية الأصلي جاهز · v{appVersion} ({buildNumber})
         </Text>
       </View>
     );
@@ -48,7 +52,7 @@ export function EngineBanner() {
     >
       <Ionicons name="alert-circle" size={14} color="#B0202F" />
       <Text style={[styles.text, { color: "#B0202F" }]}>
-        نسخة معاينة — يجب تثبيت APK من EAS Build لتفعيل الحماية الفعلية
+        نسخة معاينة — يجب تثبيت APK من EAS Build لتفعيل الحماية · v{appVersion} ({buildNumber})
       </Text>
     </View>
   );
