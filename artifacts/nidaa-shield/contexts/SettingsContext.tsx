@@ -8,6 +8,12 @@ import React, {
   useState,
 } from "react";
 
+import type { AccentName } from "@/constants/colors";
+import {
+  YOUTUBE_AD_DOMAINS,
+  YOUTUBE_BLOCKLIST_VERSION,
+} from "@/constants/youtubeBlocklist";
+
 export type ThemeMode = "system" | "light" | "dark";
 
 export interface CustomDnsServer {
@@ -19,6 +25,7 @@ export interface CustomDnsServer {
 
 export interface SettingsState {
   themeMode: ThemeMode;
+  accentColor: AccentName;
   customDnsServers: CustomDnsServer[];
   selectedCustomDnsId: string | null;
   blocklist: string[];
@@ -26,11 +33,17 @@ export interface SettingsState {
   excludedApps: string[];
   autoStartOnBoot: boolean;
   useDoH: boolean;
+  hapticsEnabled: boolean;
+  blockYoutubeAds: boolean;
+  youtubeBlocklistVersion: number;
+  onboardingCompleted: boolean;
+  firstConnectionShown: boolean;
   hasMigrated: boolean;
 }
 
 const DEFAULT_STATE: SettingsState = {
   themeMode: "system",
+  accentColor: "cyan",
   customDnsServers: [],
   selectedCustomDnsId: null,
   blocklist: [],
@@ -38,6 +51,11 @@ const DEFAULT_STATE: SettingsState = {
   excludedApps: [],
   autoStartOnBoot: false,
   useDoH: true,
+  hapticsEnabled: true,
+  blockYoutubeAds: true,
+  youtubeBlocklistVersion: 0,
+  onboardingCompleted: false,
+  firstConnectionShown: false,
   hasMigrated: true,
 };
 
@@ -45,6 +63,7 @@ const STORAGE_KEY = "@nidaa-shield/settings-v1";
 
 interface SettingsContextValue extends SettingsState {
   setThemeMode: (mode: ThemeMode) => Promise<void>;
+  setAccentColor: (color: AccentName) => Promise<void>;
   addCustomDns: (server: Omit<CustomDnsServer, "id">) => Promise<CustomDnsServer>;
   removeCustomDns: (id: string) => Promise<void>;
   selectCustomDns: (id: string | null) => Promise<void>;
@@ -55,6 +74,10 @@ interface SettingsContextValue extends SettingsState {
   setExcludedApps: (apps: string[]) => Promise<void>;
   setAutoStartOnBoot: (enabled: boolean) => Promise<void>;
   setUseDoH: (enabled: boolean) => Promise<void>;
+  setHapticsEnabled: (enabled: boolean) => Promise<void>;
+  setBlockYoutubeAds: (enabled: boolean) => Promise<void>;
+  setOnboardingCompleted: (done: boolean) => Promise<void>;
+  setFirstConnectionShown: (done: boolean) => Promise<void>;
   resetAll: () => Promise<void>;
   hydrated: boolean;
 }
@@ -67,6 +90,20 @@ function normalizeDomain(d: string): string {
     .toLowerCase()
     .replace(/^https?:\/\//, "")
     .replace(/\/.*$/, "");
+}
+
+/**
+ * Returns blocklist with YouTube ad domains injected if `blockYoutubeAds`
+ * is enabled, deduplicated. Used internally before persisting/sending to native.
+ */
+function effectiveBlocklist(
+  userBlocklist: string[],
+  blockYoutubeAds: boolean,
+): string[] {
+  if (!blockYoutubeAds) return userBlocklist;
+  const merged = new Set<string>(userBlocklist);
+  for (const d of YOUTUBE_AD_DOMAINS) merged.add(d);
+  return Array.from(merged);
 }
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
@@ -93,6 +130,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const setThemeMode = useCallback(async (mode: ThemeMode) => {
     setState((s) => ({ ...s, themeMode: mode }));
+  }, []);
+
+  const setAccentColor = useCallback(async (color: AccentName) => {
+    setState((s) => ({ ...s, accentColor: color }));
   }, []);
 
   const addCustomDns = useCallback(
@@ -156,15 +197,38 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, useDoH: enabled }));
   }, []);
 
+  const setHapticsEnabled = useCallback(async (enabled: boolean) => {
+    setState((s) => ({ ...s, hapticsEnabled: enabled }));
+  }, []);
+
+  const setBlockYoutubeAds = useCallback(async (enabled: boolean) => {
+    setState((s) => ({
+      ...s,
+      blockYoutubeAds: enabled,
+      youtubeBlocklistVersion: enabled ? YOUTUBE_BLOCKLIST_VERSION : 0,
+    }));
+  }, []);
+
+  const setOnboardingCompleted = useCallback(async (done: boolean) => {
+    setState((s) => ({ ...s, onboardingCompleted: done }));
+  }, []);
+
+  const setFirstConnectionShown = useCallback(async (done: boolean) => {
+    setState((s) => ({ ...s, firstConnectionShown: done }));
+  }, []);
+
   const resetAll = useCallback(async () => {
-    setState(DEFAULT_STATE);
+    setState({ ...DEFAULT_STATE, onboardingCompleted: true });
   }, []);
 
   const value = useMemo<SettingsContextValue>(
     () => ({
       ...state,
+      // expose the merged YouTube-aware blocklist as `blocklist`
+      blocklist: effectiveBlocklist(state.blocklist, state.blockYoutubeAds),
       hydrated,
       setThemeMode,
+      setAccentColor,
       addCustomDns,
       removeCustomDns,
       selectCustomDns,
@@ -175,12 +239,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setExcludedApps,
       setAutoStartOnBoot,
       setUseDoH,
+      setHapticsEnabled,
+      setBlockYoutubeAds,
+      setOnboardingCompleted,
+      setFirstConnectionShown,
       resetAll,
     }),
     [
       state,
       hydrated,
       setThemeMode,
+      setAccentColor,
       addCustomDns,
       removeCustomDns,
       selectCustomDns,
@@ -191,6 +260,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setExcludedApps,
       setAutoStartOnBoot,
       setUseDoH,
+      setHapticsEnabled,
+      setBlockYoutubeAds,
+      setOnboardingCompleted,
+      setFirstConnectionShown,
       resetAll,
     ],
   );
@@ -204,4 +277,15 @@ export function useSettings() {
   const ctx = useContext(SettingsContext);
   if (!ctx) throw new Error("useSettings must be used inside SettingsProvider");
   return ctx;
+}
+
+/**
+ * Returns the user-defined blocklist WITHOUT the auto-injected YouTube ads.
+ * Useful for the blocklist editor UI so the user only sees their own entries.
+ */
+export function useUserBlocklist(): string[] {
+  const ctx = useContext(SettingsContext);
+  if (!ctx) throw new Error("useUserBlocklist must be used inside SettingsProvider");
+  // strip injected YT domains so the editor only manages user-added entries
+  return ctx.blocklist.filter((d) => !YOUTUBE_AD_DOMAINS.includes(d));
 }

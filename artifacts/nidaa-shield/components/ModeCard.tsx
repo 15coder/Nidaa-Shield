@@ -77,32 +77,40 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   };
 
   const handlePress = () => {
-    if (Platform.OS !== "web") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (Platform.OS !== "web" && settings.hapticsEnabled) {
+      // Success-pattern when activating, lighter tap when re-pressing the active card
+      const style = isActive
+        ? Haptics.ImpactFeedbackStyle.Light
+        : Haptics.ImpactFeedbackStyle.Medium;
+      Haptics.impactAsync(style).catch(() => {});
     }
     onPress();
   };
 
+  const accentPrimary = colors.primary;
+  const accentDark = colors.primaryDark;
+  const accentSoftBg = colors.primarySoft;
+
   // Theme-aware backgrounds
   const activeGradient: [string, string, string] = isDark
-    ? ["rgba(0, 180, 255, 0.18)", "rgba(0, 180, 255, 0.08)", "rgba(22, 28, 36, 0.95)"]
-    : ["#EAF7FF", "#F4FBFF", "#FFFFFF"];
+    ? [accentSoftBg, accentSoftBg, "rgba(22, 28, 36, 0.95)"]
+    : [accentSoftBg, "rgba(255, 255, 255, 0.6)", "#FFFFFF"];
 
   const inactiveBg = isDark ? colors.cardSolid : "#F6F8FB";
   const inactiveIconBg = isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF";
   const inactiveIconBorder = isDark
     ? "rgba(255,255,255,0.08)"
     : "rgba(0,0,0,0.06)";
-  const activeTitleColor = isDark ? colors.primary : colors.primaryDark;
+  const activeTitleColor = isDark ? accentPrimary : accentDark;
   const activeDescColor = isDark
-    ? "rgba(180, 220, 245, 0.85)"
-    : "rgba(0, 80, 120, 0.75)";
+    ? "rgba(220, 230, 240, 0.85)"
+    : "rgba(20, 30, 50, 0.70)";
 
   // Active "مفعّل" pill — soft translucent in dark mode, solid in light mode
-  const pillBg = isDark ? "rgba(51, 197, 255, 0.18)" : colors.primary;
-  const pillBorder = isDark ? "rgba(51, 197, 255, 0.45)" : "transparent";
-  const pillTextColor = isDark ? colors.primary : colors.primaryForeground;
-  const pillDotColor = isDark ? colors.primary : "#FFFFFF";
+  const pillBg = isDark ? accentSoftBg : accentPrimary;
+  const pillBorder = isDark ? colors.cardActiveBorder : "transparent";
+  const pillTextColor = isDark ? accentPrimary : "#FFFFFF";
+  const pillDotColor = isDark ? accentPrimary : "#FFFFFF";
 
   return (
     <Animated.View
@@ -174,7 +182,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
               >
                 {isActive ? (
                   <LinearGradient
-                    colors={["#33C5FF", "#00B4FF", "#0090CC"]}
+                    colors={[accentPrimary, accentPrimary, accentDark]}
                     start={{ x: 0.2, y: 0 }}
                     end={{ x: 0.8, y: 1 }}
                     style={styles.iconCircle}

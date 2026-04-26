@@ -48,8 +48,25 @@ class NidaaVpnService : VpnService() {
 
   @Volatile private var tun: ParcelFileDescriptor? = null
   @Volatile private var workerThread: Thread? = null
+  @Volatile private var notifThread: Thread? = null
   @Volatile private var running = false
   private val doh = DohClient()
+
+  /** Mode definitions used to build quick-switch notification action buttons. */
+  data class QuickMode(
+    val id: String,
+    val label: String,
+    val primary: String,
+    val secondary: String,
+    val useDoH: Boolean,
+  )
+
+  private val QUICK_MODES = listOf(
+    QuickMode("smart", "ذكي", "94.140.14.14", "94.140.15.15", false),
+    QuickMode("gaming", "ألعاب", "1.1.1.1", "1.0.0.1", false),
+    QuickMode("family", "عائلة", "94.140.14.15", "94.140.15.16", false),
+    QuickMode("military", "خصوصية", "1.1.1.1", "1.0.0.1", true),
+  )
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     if (intent?.action == ACTION_STOP) {
@@ -91,10 +108,29 @@ class NidaaVpnService : VpnService() {
     VpnState.isRunning = true
     running = true
     workerThread = thread(name = "nidaa-vpn-worker", isDaemon = true) { runLoop() }
+    notifThread = thread(name = "nidaa-vpn-notif", isDaemon = true) { notifLoop() }
 
     notifySystemSurfaces()
 
     return START_STICKY
+  }
+
+  /**
+   * Refreshes the persistent notification every few seconds so the user sees
+   * the live blocked-count and active mode without leaving the app.
+   */
+  private fun notifLoop() {
+    while (running) {
+      try {
+        Thread.sleep(5_000)
+        if (!running) break
+        startForegroundCompat(VpnState.sessionName ?: "نداء شايلد")
+      } catch (_: InterruptedException) {
+        break
+      } catch (_: Throwable) {
+        // never let the notif loop kill the service
+      }
+    }
   }
 
   private fun notifySystemSurfaces() {
@@ -221,11 +257,36 @@ class NidaaVpnService : VpnService() {
     return false
   }
 
+  /**
+   * Public, well-known recursive resolvers that act as the last-resort
+   * fallback if both the user-selected DNS and its secondary fail. Order
+   * matters: we go cyan-Cloudflare → Google → Quad9 (DNSSEC).
+   */
+  private val FALLBACK_DNS = listOf("1.1.1.1", "8.8.8.8", "9.9.9.9")
+
   private fun forwardUdp(query: ByteArray, primary: String, secondary: String?): ByteArray? {
-    val targets = listOfNotNull(primary, secondary)
-    for (t in targets) {
-      val r = sendUdpDns(query, t)
-      if (r != null) return r
+    // Walk the full chain: primary → secondary → public fallbacks.
+    // De-duplicate so we don't probe the same server twice when the user
+    // already chose a public resolver.
+    val ordered = LinkedHashSet<String>()
+    ordered.add(primary)
+    if (secondary != null) ordered.add(secondary)
+    for (s in FALLBACK_DNS) ordered.add(s)
+
+    var lastFailure: String? = null
+    for (server in ordered) {
+      val r = sendUdpDns(query, server)
+      if (r != null) {
+        if (server != primary) {
+          // Track that we had to fall back; useful for diagnostics.
+          VpnState.fallbackHits.incrementAndGet()
+        }
+        return r
+      }
+      lastFailure = server
+    }
+    if (lastFailure != null) {
+      Log.w(TAG, "All upstream DNS failed (last=$lastFailure)")
     }
     return null
   }
@@ -266,16 +327,49 @@ class NidaaVpnService : VpnService() {
     val stopIntent = Intent(this, NidaaVpnService::class.java).setAction(ACTION_STOP)
     val stopPi = PendingIntent.getService(this, 1, stopIntent, piFlags)
 
-    val notif: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+    val blocked = VpnState.blockedQueries.get()
+    val total = VpnState.totalQueries.get()
+    val activeId = VpnState.modeId
+    val activeLabel = QUICK_MODES.firstOrNull { it.id == activeId }?.label ?: sessionName
+
+    val contentText = if (total > 0) {
+      "$activeLabel • حُجب ${blocked} إعلان من ${total} طلب"
+    } else {
+      "$activeLabel • في انتظار أول طلب…"
+    }
+
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_lock_lock)
       .setContentTitle("نداء شايلد — الحماية مفعّلة")
-      .setContentText(sessionName)
+      .setContentText(contentText)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
       .setContentIntent(openPi)
       .addAction(android.R.drawable.ic_menu_close_clear_cancel, "إيقاف", stopPi)
-      .build()
+
+    // Add up to two quick-switch action buttons for non-active modes
+    // (Android only renders ~3 actions total in the notification UI).
+    val others = QUICK_MODES.filter { it.id != activeId }.take(2)
+    others.forEachIndexed { idx, m ->
+      val swIntent = Intent(this, NidaaVpnService::class.java).apply {
+        action = ACTION_START
+        putExtra(EXTRA_PRIMARY, m.primary)
+        putExtra(EXTRA_SECONDARY, m.secondary)
+        putExtra(EXTRA_USE_DOH, m.useDoH)
+        putExtra(EXTRA_NAME, m.label)
+        putExtra(EXTRA_MODE_ID, m.id)
+        // Carry over current blocklist/whitelist/excluded so the user's
+        // configuration survives a notification quick-switch.
+        putExtra(EXTRA_BLOCKLIST, VpnState.blocklist.toTypedArray())
+        putExtra(EXTRA_WHITELIST, VpnState.whitelist.toTypedArray())
+        putExtra(EXTRA_EXCLUDED, VpnState.excludedApps.toTypedArray())
+      }
+      val pi = PendingIntent.getService(this, 100 + idx, swIntent, piFlags)
+      builder.addAction(0, m.label, pi)
+    }
+
+    val notif: Notification = builder.build()
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       startForeground(NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
@@ -290,6 +384,8 @@ class NidaaVpnService : VpnService() {
     VpnState.startedAtMs = 0L
     try { tun?.close() } catch (_: Throwable) {}
     tun = null
+    try { notifThread?.interrupt() } catch (_: Throwable) {}
+    notifThread = null
     workerThread = null
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
       try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Throwable) {}

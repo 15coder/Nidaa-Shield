@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
 import React, {
   createContext,
   useCallback,
@@ -352,6 +353,13 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
 
         setActiveModeState(mode);
         setIsConnected(true);
+
+        // Success haptic — long, rich pattern so user feels "the shield is up".
+        if (Platform.OS !== "web" && settings.hapticsEnabled) {
+          Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          ).catch(() => {});
+        }
       } catch (e: any) {
         Alert.alert(
           "تعذر تفعيل الحماية",
@@ -359,7 +367,7 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
         );
       }
     },
-    [engineStatus, buildModeConfig],
+    [engineStatus, buildModeConfig, settings.hapticsEnabled],
   );
 
   const disconnect = useCallback(async () => {
@@ -367,7 +375,12 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     setActiveModeState(null);
     setIsConnected(false);
     setStats(EMPTY_STATS);
-  }, [engineStatus]);
+    if (Platform.OS !== "web" && settings.hapticsEnabled) {
+      Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Warning,
+      ).catch(() => {});
+    }
+  }, [engineStatus, settings.hapticsEnabled]);
 
   const value = useMemo<VpnContextValue>(
     () => ({

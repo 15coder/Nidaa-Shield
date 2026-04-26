@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AboutModal } from "@/components/AboutModal";
+import { FirstConnectionAnimation } from "@/components/FirstConnectionAnimation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModeCard } from "@/components/ModeCard";
@@ -14,9 +15,28 @@ import { useColors } from "@/hooks/useColors";
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { activeMode, setActiveMode, disconnect } = useVpn();
+  const { activeMode, isConnected, setActiveMode, disconnect } = useVpn();
   const settings = useSettings();
   const [aboutVisible, setAboutVisible] = useState(false);
+  const [firstConnVisible, setFirstConnVisible] = useState(false);
+
+  // Show the "first connection" animated diagram once after the user
+  // successfully activates protection for the very first time.
+  useEffect(() => {
+    if (
+      isConnected &&
+      !settings.firstConnectionShown &&
+      settings.hydrated
+    ) {
+      const t = setTimeout(() => setFirstConnVisible(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [isConnected, settings.firstConnectionShown, settings.hydrated]);
+
+  const closeFirstConn = () => {
+    setFirstConnVisible(false);
+    settings.setFirstConnectionShown(true);
+  };
 
   const baseModes: Array<Exclude<ShieldMode, null>> = [
     "smart",
@@ -100,6 +120,11 @@ export default function HomeScreen() {
       <AboutModal
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
+      />
+
+      <FirstConnectionAnimation
+        visible={firstConnVisible}
+        onClose={closeFirstConn}
       />
     </View>
   );

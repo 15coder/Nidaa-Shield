@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PageHeader } from "@/components/PageHeader";
+import { ACCENT_LIST, type AccentName } from "@/constants/colors";
 import { useSettings, type ThemeMode } from "@/contexts/SettingsContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -40,7 +41,7 @@ export default function SettingsScreen() {
   const showWidgetHowTo = () => {
     Alert.alert(
       "إضافة الويدجت",
-      "اضغط مطوّلاً على مساحة فارغة في شاشتك الرئيسية، ثم اختر \"إضافة ودجت\" أو \"Widgets\"، وابحث عن \"نداء شايلد\". ستجد عدة تصاميم:\n\n• ودجت سريع (مفتاح تشغيل/إيقاف)\n• ودجت الأوضاع (4 أوضاع بضغطة)\n• ودجت الحالة الكبير\n\nاختر التصميم الذي يناسبك ثم اسحبه إلى شاشتك.",
+      'اضغط مطوّلاً على مساحة فارغة في شاشتك الرئيسية، ثم اختر "إضافة ودجت" أو "Widgets"، وابحث عن "نداء شايلد". ستجد عدة تصاميم:\n\n• ودجت سريع (مفتاح تشغيل/إيقاف)\n• ودجت الأوضاع (4 أوضاع بضغطة)\n• ودجت الحالة الكبير\n\nاختر التصميم الذي يناسبك ثم اسحبه إلى شاشتك.',
     );
   };
 
@@ -79,12 +80,75 @@ export default function SettingsScreen() {
             icon="moon-outline"
             colors={colors}
           />
+
+          <View style={[styles.accentBlock, { backgroundColor: colors.cardSolid, borderColor: colors.cardBorder }]}>
+            <Text style={[styles.accentTitle, { color: colors.foreground }]}>
+              لون التطبيق الأساسي
+            </Text>
+            <Text style={[styles.accentHint, { color: colors.mutedForeground }]}>
+              اختر اللون الذي يلائم ذوقك. خيار «تباين عالٍ» مناسب لكبار السن.
+            </Text>
+            <View style={styles.accentRow}>
+              {ACCENT_LIST.map((a) => (
+                <AccentSwatch
+                  key={a.id}
+                  id={a.id}
+                  label={a.label}
+                  color={a.color}
+                  selected={settings.accentColor === a.id}
+                  onSelect={() => settings.setAccentColor(a.id)}
+                  colors={colors}
+                />
+              ))}
+            </View>
+          </View>
+        </Section>
+
+        <Section title="حظر إعلانات يوتيوب" colors={colors}>
+          <ToggleRow
+            icon="logo-youtube"
+            iconColor="#FF0033"
+            label="حجب إعلانات يوتيوب"
+            hint="يضيف ~30 نطاقاً إعلانياً معروفاً تلقائياً"
+            value={settings.blockYoutubeAds}
+            onValueChange={(v) => settings.setBlockYoutubeAds(v)}
+            colors={colors}
+          />
+          <View
+            style={[
+              styles.tipCard,
+              { backgroundColor: "#FF003311", borderColor: "#FF003344" },
+            ]}
+          >
+            <Ionicons name="information-circle" size={16} color="#FF0033" />
+            <Text style={[styles.tipText, { color: colors.foreground }]}>
+              ملاحظة: بعض إعلانات يوتيوب تأتي من نفس خادم الفيديوهات (googlevideo.com)
+              ولا يمكن حجبها عبر DNS بدون كسر الفيديو نفسه. هذه الميزة تحجب
+              ~85% من الإعلانات والمتتبّعات بشكل آمن.
+            </Text>
+          </View>
         </Section>
 
         <Section title="الأدوات" colors={colors}>
           <NavRow
-            icon="speedometer-outline"
+            icon="checkmark-circle-outline"
             iconColor="#1B7A4B"
+            label="اختبر الحماية الآن"
+            hint="تأكد أن الفلترة تعمل فعلاً"
+            onPress={() => router.push("/test-protection")}
+            colors={colors}
+          />
+          <NavRow
+            icon="share-social-outline"
+            iconColor={colors.primary}
+            label="شارك إنجازك"
+            hint="انشر شارة الحماية على ستوري واتساب"
+            onPress={() => router.push("/share-badge")}
+            colors={colors}
+          />
+          <NavRow
+            icon="speedometer-outline"
+            iconColor="#9B6CFF"
             label="اختبار سرعة DNS"
             hint="قِس زمن الاستجابة لكل خادم"
             onPress={() => router.push("/speed-test")}
@@ -97,7 +161,7 @@ export default function SettingsScreen() {
             icon="ban-outline"
             iconColor="#E03E52"
             label="القائمة السوداء"
-            hint={`${settings.blocklist.length} نطاق محظور`}
+            hint={`${settings.blocklist.length} نطاق محظور${settings.blockYoutubeAds ? " (شامل قائمة يوتيوب)" : ""}`}
             onPress={() => router.push("/settings/blocklist")}
             colors={colors}
           />
@@ -112,6 +176,15 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="المتقدّم" colors={colors}>
+          <ToggleRow
+            icon="phone-portrait-outline"
+            iconColor={colors.primary}
+            label="اهتزاز خفيف عند التشغيل"
+            hint="تأثير لمسي عند تفعيل/إيقاف الحماية"
+            value={settings.hapticsEnabled}
+            onValueChange={(v) => settings.setHapticsEnabled(v)}
+            colors={colors}
+          />
           <NavRow
             icon="hardware-chip-outline"
             iconColor={colors.primary}
@@ -235,6 +308,100 @@ function ThemeRow({
   );
 }
 
+function AccentSwatch({
+  id,
+  label,
+  color,
+  selected,
+  onSelect,
+  colors,
+}: {
+  id: AccentName;
+  label: string;
+  color: string;
+  selected: boolean;
+  onSelect: () => void;
+  colors: ReturnType<typeof useColors>;
+}) {
+  return (
+    <Pressable
+      onPress={onSelect}
+      style={({ pressed }) => [
+        styles.swatchBtn,
+        {
+          borderColor: selected ? color : colors.cardBorder,
+          backgroundColor: selected ? color + "1A" : "transparent",
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.swatchDot, { backgroundColor: color }]}>
+        {selected ? (
+          <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+        ) : null}
+      </View>
+      <Text style={[styles.swatchLabel, { color: colors.foreground }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ToggleRow({
+  icon,
+  iconColor,
+  label,
+  hint,
+  value,
+  onValueChange,
+  colors,
+}: {
+  icon: any;
+  iconColor: string;
+  label: string;
+  hint: string;
+  value: boolean;
+  onValueChange: (v: boolean) => void;
+  colors: ReturnType<typeof useColors>;
+}) {
+  return (
+    <View
+      style={[
+        styles.row,
+        {
+          backgroundColor: colors.cardSolid,
+          borderColor: colors.cardBorder,
+        },
+      ]}
+    >
+      <View style={styles.rowRight}>
+        <View
+          style={[
+            styles.iconWrap,
+            { backgroundColor: iconColor + "22" },
+          ]}
+        >
+          <Ionicons name={icon} size={16} color={iconColor} />
+        </View>
+        <View style={{ flex: 1, alignItems: "flex-end" }}>
+          <Text style={[styles.rowLabel, { color: colors.foreground }]}>
+            {label}
+          </Text>
+          <Text style={[styles.rowHint, { color: colors.mutedForeground }]}>
+            {hint}
+          </Text>
+        </View>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+        trackColor={{ false: colors.muted, true: colors.primary }}
+      />
+    </View>
+  );
+}
+
 function NavRow({
   icon,
   iconColor,
@@ -349,5 +516,65 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  accentBlock: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    gap: 8,
+  },
+  accentTitle: {
+    fontFamily: "Cairo_700Bold",
+    fontSize: 13,
+    textAlign: "right",
+    writingDirection: "rtl",
+  },
+  accentHint: {
+    fontFamily: "Cairo_500Medium",
+    fontSize: 11,
+    textAlign: "right",
+    writingDirection: "rtl",
+    marginBottom: 4,
+  },
+  accentRow: {
+    flexDirection: "row-reverse",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  swatchBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1.5,
+  },
+  swatchDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  swatchLabel: {
+    fontFamily: "Cairo_600SemiBold",
+    fontSize: 11,
+  },
+  tipCard: {
+    flexDirection: "row-reverse",
+    alignItems: "flex-start",
+    gap: 10,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  tipText: {
+    flex: 1,
+    fontFamily: "Cairo_500Medium",
+    fontSize: 11,
+    textAlign: "right",
+    writingDirection: "rtl",
+    lineHeight: 17,
   },
 });

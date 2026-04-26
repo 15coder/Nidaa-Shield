@@ -13,13 +13,14 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PageHeader } from "@/components/PageHeader";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, useUserBlocklist } from "@/contexts/SettingsContext";
 import { useColors } from "@/hooks/useColors";
 
 export default function BlocklistScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { blocklist, addToBlocklist, removeFromBlocklist } = useSettings();
+  const { addToBlocklist, removeFromBlocklist } = useSettings();
+  const blocklist = useUserBlocklist();
   const [input, setInput] = useState("");
 
   const handleAdd = async () => {

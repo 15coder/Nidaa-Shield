@@ -6,7 +6,7 @@ import {
   Cairo_900Black,
   useFonts,
 } from "@expo-google-fonts/cairo";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { I18nManager, Platform, StatusBar, useColorScheme } from "react-native";
@@ -38,8 +38,11 @@ function RootLayoutNav() {
         animation: "slide_from_left",
       }}
     >
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="index" />
       <Stack.Screen name="speed-test" />
+      <Stack.Screen name="test-protection" />
+      <Stack.Screen name="share-badge" />
       <Stack.Screen name="settings/index" />
       <Stack.Screen name="settings/custom-dns" />
       <Stack.Screen name="settings/blocklist" />
@@ -60,6 +63,22 @@ function ThemedStatusBar() {
   );
 }
 
+function OnboardingGate({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const segments = useSegments();
+  const { onboardingCompleted, hydrated } = useSettings();
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const onOnboarding = segments[0] === "onboarding";
+    if (!onboardingCompleted && !onOnboarding) {
+      router.replace("/onboarding");
+    }
+  }, [hydrated, onboardingCompleted, segments, router]);
+
+  return <>{children}</>;
+}
+
 function ThemedShell() {
   const colors = useColors();
   const { hydrated } = useSettings();
@@ -70,7 +89,9 @@ function ThemedShell() {
     >
       <VpnProvider>
         <ThemedStatusBar />
-        <RootLayoutNav />
+        <OnboardingGate>
+          <RootLayoutNav />
+        </OnboardingGate>
         <SalatReminder />
       </VpnProvider>
     </GestureHandlerRootView>

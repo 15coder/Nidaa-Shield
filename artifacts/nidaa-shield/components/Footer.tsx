@@ -21,94 +21,92 @@ export function Footer({ onAboutPress }: Props) {
   };
 
   return (
-    <View>
+    <View style={styles.wrap}>
+      <Text style={[styles.label, { color: colors.mutedForeground }]}>
+        تواصل معنا
+      </Text>
       <View style={styles.row}>
-        <Pressable
-          onPress={onAboutPress}
-          accessibilityLabel="لماذا نداء شايلد"
-          style={({ pressed }) => [
-            styles.iconBtn,
-            {
-              backgroundColor: colors.muted,
-              opacity: pressed ? 0.6 : 1,
-            },
-          ]}
-        >
-          <Ionicons name="information-circle-outline" size={18} color={colors.foreground} />
-        </Pressable>
-
-        <Pressable
+        <SocialIcon
+          icon="logo-whatsapp"
+          color="#25D366"
           onPress={() => open(WHATSAPP_URL)}
-          style={({ pressed }) => [
-            styles.socialBtn,
-            { borderColor: colors.cardBorder, opacity: pressed ? 0.6 : 1 },
-          ]}
-        >
-          <Ionicons name="logo-whatsapp" size={15} color={colors.foreground} />
-          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
-            +963 980 362 204
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => open(INSTAGRAM_URL)}
-          style={({ pressed }) => [
-            styles.socialBtn,
-            { borderColor: colors.cardBorder, opacity: pressed ? 0.6 : 1 },
-          ]}
-        >
-          <Ionicons name="logo-instagram" size={15} color={colors.foreground} />
-          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
-            15coder
-          </Text>
-        </Pressable>
-
-        <Pressable
+          accessibilityLabel="واتساب"
+        />
+        <SocialIcon
+          icon="paper-plane"
+          color="#229ED9"
           onPress={() => open(TELEGRAM_URL)}
-          style={({ pressed }) => [
-            styles.socialBtn,
-            { borderColor: colors.cardBorder, opacity: pressed ? 0.6 : 1 },
-          ]}
-        >
-          <Ionicons name="paper-plane" size={14} color={colors.foreground} />
-          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
-            nidaashield
-          </Text>
-        </Pressable>
+          accessibilityLabel="تلجرام"
+        />
+        <SocialIcon
+          icon="logo-instagram"
+          color="#E4405F"
+          onPress={() => open(INSTAGRAM_URL)}
+          accessibilityLabel="إنستغرام"
+        />
+        <SocialIcon
+          icon="information-circle-outline"
+          color={colors.foreground}
+          onPress={onAboutPress}
+          accessibilityLabel="حول التطبيق"
+        />
       </View>
     </View>
   );
 }
 
+function SocialIcon({
+  icon,
+  color,
+  onPress,
+  accessibilityLabel,
+}: {
+  icon: any;
+  color: string;
+  onPress: () => void;
+  accessibilityLabel: string;
+}) {
+  const colors = useColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [
+        styles.iconBtn,
+        {
+          backgroundColor: color + "1A",
+          borderColor: color + "40",
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <Ionicons name={icon} size={20} color={color} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  wrap: {
+    alignItems: "center",
+    gap: 10,
+  },
+  label: {
+    fontFamily: "Cairo_600SemiBold",
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
   row: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 8,
-    paddingTop: 4,
-    paddingBottom: 6,
-    flexWrap: "wrap",
+    gap: 10,
     justifyContent: "center",
   },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  socialBtn: {
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  socialLabel: {
-    fontFamily: "Cairo_600SemiBold",
-    fontSize: 11,
-    fontVariant: ["tabular-nums"],
   },
 });

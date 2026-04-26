@@ -1,23 +1,39 @@
 import { useColorScheme } from "react-native";
 
-import colors from "@/constants/colors";
+import colors, { getAccent, type AccentName } from "@/constants/colors";
 import { useSettings } from "@/contexts/SettingsContext";
 
 /**
- * Returns the design tokens for the current color scheme.
- * Honors the user-selected theme override from SettingsContext when set,
- * otherwise follows the device's appearance setting.
+ * Returns the design tokens for the current color scheme,
+ * with the user-selected accent color applied on top.
  */
 export function useColors() {
   const systemScheme = useColorScheme();
   let themeMode: "system" | "light" | "dark" = "system";
+  let accentColor: AccentName = "cyan";
   try {
-    themeMode = useSettings().themeMode;
+    const s = useSettings();
+    themeMode = s.themeMode;
+    accentColor = s.accentColor;
   } catch {
-    // Settings provider not mounted yet — fall back to system.
+    // Settings provider not mounted yet — fall back to defaults.
   }
   const effective =
     themeMode === "system" ? (systemScheme === "dark" ? "dark" : "light") : themeMode;
   const palette = effective === "dark" ? colors.dark : colors.light;
-  return { ...palette, radius: colors.radius, scheme: effective };
+  const accent = getAccent(effective, accentColor);
+
+  return {
+    ...palette,
+    primary: accent.primary,
+    primaryDark: accent.primaryDark,
+    primaryGlow: accent.primaryGlow,
+    primarySoft: accent.primarySoft,
+    cardActiveBorder: accent.cardActiveBorder,
+    cardActiveGlow: accent.cardActiveGlow,
+    tint: accent.tint,
+    radius: colors.radius,
+    scheme: effective,
+    accent: accentColor,
+  };
 }
