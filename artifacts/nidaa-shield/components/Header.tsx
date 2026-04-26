@@ -1,5 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
-import { Image, Platform, StyleSheet, Text, View } from "react-native";
+import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
@@ -7,19 +9,16 @@ import { useColors } from "@/hooks/useColors";
 export function Header() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const topPad =
     Platform.OS === "web" ? Math.max(insets.top, 28) : insets.top + 14;
 
   return (
     <View style={[styles.wrap, { paddingTop: topPad }]}>
-      {/* Top row: Logo on the right, status pill on the left */}
       <View style={styles.topRow}>
         <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: colors.primarySoft },
-          ]}
+          style={[styles.statusBadge, { backgroundColor: colors.primarySoft }]}
         >
           <View
             style={[styles.statusDot, { backgroundColor: colors.primary }]}
@@ -29,12 +28,26 @@ export function Header() {
           </Text>
         </View>
 
-        <Image
-          source={require("../assets/images/icon.png")}
-          style={styles.logo}
-        />
+        <View style={styles.leftCluster}>
+          <Pressable
+            accessibilityLabel="الإعدادات"
+            onPress={() => router.push("/settings")}
+            style={({ pressed }) => [
+              styles.iconBtn,
+              {
+                backgroundColor: colors.muted,
+                opacity: pressed ? 0.6 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="settings-outline" size={18} color={colors.foreground} />
+          </Pressable>
+          <Image
+            source={require("../assets/images/icon.png")}
+            style={styles.logo}
+          />
+        </View>
       </View>
-
     </View>
   );
 }
@@ -49,31 +62,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  leftCluster: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 10,
+  },
   logo: {
     width: 48,
     height: 48,
     borderRadius: 14,
   },
-  spacer: {
-    height: 18,
-  },
-  titleBlock: {
-    alignItems: "flex-end",
-  },
-  title: {
-    fontFamily: "Cairo_700Bold",
-    fontSize: 22,
-    textAlign: "right",
-    writingDirection: "rtl",
-    lineHeight: 28,
-  },
-  subtitle: {
-    fontFamily: "Cairo_500Medium",
-    fontSize: 12,
-    textAlign: "right",
-    writingDirection: "rtl",
-    lineHeight: 16,
-    marginTop: 2,
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
   },
   statusBadge: {
     flexDirection: "row-reverse",

@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ModeCard } from "@/components/ModeCard";
 import { StatusOrb } from "@/components/StatusOrb";
+import { useSettings } from "@/contexts/SettingsContext";
 import { MODES, useVpn, type ShieldMode } from "@/contexts/VpnContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -15,7 +16,18 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { activeMode, setActiveMode, disconnect } = useVpn();
+  const settings = useSettings();
   const [aboutVisible, setAboutVisible] = useState(false);
+
+  const baseModes: Array<Exclude<ShieldMode, null>> = [
+    "smart",
+    "gaming",
+    "family",
+    "military",
+  ];
+  const modeIds = settings.customDnsServers.length > 0
+    ? [...baseModes, "custom" as Exclude<ShieldMode, null>]
+    : baseModes;
 
   const handleSelect = async (mode: Exclude<ShieldMode, null>) => {
     if (activeMode === mode) {
@@ -62,11 +74,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.modesList}>
-            {(
-              ["smart", "gaming", "family", "military"] as Array<
-                Exclude<ShieldMode, null>
-              >
-            ).map((id) => (
+            {modeIds.map((id) => (
               <ModeCard
                 key={id}
                 mode={MODES[id]}

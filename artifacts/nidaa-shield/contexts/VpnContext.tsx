@@ -5,22 +5,29 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, AppState, Platform } from "react-native";
 
 import {
+  getCurrentSession,
+  getVpnStats,
   isNativeAvailable,
   requestVpnPermission as requestPermissionNative,
+  setNativeAutoStart,
   startVpnService,
   stopVpnService,
+  type VpnStats as NativeVpnStats,
 } from "nidaa-vpn";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export type ShieldMode =
   | "smart"
   | "gaming"
   | "family"
   | "military"
+  | "custom"
   | null;
 
 export interface ModeDefinition {
@@ -35,7 +42,8 @@ export interface ModeDefinition {
     | "shield-checkmark"
     | "game-controller"
     | "people"
-    | "lock-closed";
+    | "lock-closed"
+    | "construct";
 }
 
 export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
@@ -83,23 +91,54 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
     protocol: "DoH",
     iconName: "lock-closed",
   },
+  custom: {
+    id: "custom",
+    title: "الوضع المخصّص",
+    shortDescription: "خادم DNS اخترته أنت من شاشة الإعدادات",
+    longDescription:
+      "يستخدم خادم DNS الذي حدّدته يدوياً من شاشة الإعدادات > خوادم DNS مخصّصة.",
+    primaryDns: "0.0.0.0",
+    protocol: "DNS",
+    iconName: "construct",
+  },
 };
 
-export type EngineStatus =
-  | "ready"          // Native VPN engine loaded — full functionality available
-  | "missing-build" // Running in Expo Go or web — native module not bundled
-  | "ios-unsupported"; // iOS — system-wide DNS not supported here yet
+export type EngineStatus = "ready" | "missing-build" | "ios-unsupported";
+
+export interface RuntimeStats {
+  totalQueries: number;
+  blockedQueries: number;
+  forwardedQueries: number;
+  dohQueries: number;
+  averageLatencyMs: number;
+  lastDomain: string | null;
+  lastBlockedDomain: string | null;
+  uptimeMs: number;
+}
+
+const EMPTY_STATS: RuntimeStats = {
+  totalQueries: 0,
+  blockedQueries: 0,
+  forwardedQueries: 0,
+  dohQueries: 0,
+  averageLatencyMs: 0,
+  lastDomain: null,
+  lastBlockedDomain: null,
+  uptimeMs: 0,
+};
 
 interface VpnState {
   activeMode: ShieldMode;
   isConnected: boolean;
   uptimeSeconds: number;
   engineStatus: EngineStatus;
+  stats: RuntimeStats;
 }
 
 interface VpnContextValue extends VpnState {
   setActiveMode: (mode: ShieldMode) => Promise<void>;
   disconnect: () => Promise<void>;
+  refreshStats: () => Promise<void>;
 }
 
 const STORAGE_KEY = "@nidaa-shield/state-v1";
@@ -110,60 +149,164 @@ function computeEngineStatus(): EngineStatus {
   if (Platform.OS === "android") {
     return isNativeAvailable ? "ready" : "missing-build";
   }
-  if (Platform.OS === "ios") {
-    return "ios-unsupported";
-  }
+  if (Platform.OS === "ios") return "ios-unsupported";
   return "missing-build";
 }
 
+function nativeStatsToRuntime(s: NativeVpnStats | null): RuntimeStats {
+  if (!s) return EMPTY_STATS;
+  return {
+    totalQueries: s.totalQueries,
+    blockedQueries: s.blockedQueries,
+    forwardedQueries: s.forwardedQueries,
+    dohQueries: s.dohQueries,
+    averageLatencyMs: s.averageLatencyMs,
+    lastDomain: s.lastDomain,
+    lastBlockedDomain: s.lastBlockedDomain,
+    uptimeMs: s.uptimeMs,
+  };
+}
+
 export function VpnProvider({ children }: { children: React.ReactNode }) {
+  const settings = useSettings();
   const [activeMode, setActiveModeState] = useState<ShieldMode>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
+  const [stats, setStats] = useState<RuntimeStats>(EMPTY_STATS);
   const [hydrated, setHydrated] = useState(false);
   const engineStatus = useMemo(computeEngineStatus, []);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Hydrate persisted active mode + reconcile with native running state
   useEffect(() => {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as Partial<VpnState>;
-          if (parsed.activeMode) {
-            setActiveModeState(parsed.activeMode);
-          }
+          if (parsed.activeMode) setActiveModeState(parsed.activeMode);
         }
       } catch {}
+      if (engineStatus === "ready") {
+        const session = await getCurrentSession();
+        if (session.isRunning) {
+          setIsConnected(true);
+          if (session.modeId) {
+            setActiveModeState(session.modeId as ShieldMode);
+          }
+        }
+      }
       setHydrated(true);
     })();
-  }, []);
+  }, [engineStatus]);
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ activeMode }),
-    ).catch(() => {});
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ activeMode })).catch(() => {});
   }, [activeMode, hydrated]);
 
+  // Uptime ticker (UI side)
   useEffect(() => {
-    if (!isConnected) return;
-    const t = setInterval(() => {
-      setUptimeSeconds((s) => s + 1);
-    }, 1000);
+    if (!isConnected) {
+      setUptimeSeconds(0);
+      return;
+    }
+    const t = setInterval(() => setUptimeSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
   }, [isConnected]);
 
+  // Stats polling
+  const refreshStats = useCallback(async () => {
+    if (engineStatus !== "ready" || !isConnected) {
+      setStats(EMPTY_STATS);
+      return;
+    }
+    const s = await getVpnStats();
+    setStats(nativeStatsToRuntime(s));
+  }, [engineStatus, isConnected]);
+
   useEffect(() => {
-    if (!isConnected) setUptimeSeconds(0);
-  }, [isConnected]);
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    if (engineStatus === "ready" && isConnected) {
+      refreshStats();
+      pollRef.current = setInterval(refreshStats, 1500);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = null;
+    };
+  }, [engineStatus, isConnected, refreshStats]);
+
+  // Refresh state when app returns to foreground (user may have toggled via tile/widget)
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", async (next) => {
+      if (next === "active" && engineStatus === "ready") {
+        const session = await getCurrentSession();
+        setIsConnected(session.isRunning);
+        if (session.modeId) setActiveModeState(session.modeId as ShieldMode);
+        refreshStats();
+      }
+    });
+    return () => sub.remove();
+  }, [engineStatus, refreshStats]);
+
+  // Mirror auto-start preference into native shared prefs
+  useEffect(() => {
+    if (engineStatus !== "ready" || !settings.hydrated) return;
+    setNativeAutoStart(settings.autoStartOnBoot).catch(() => {});
+  }, [engineStatus, settings.autoStartOnBoot, settings.hydrated]);
+
+  const buildModeConfig = useCallback(
+    (mode: Exclude<ShieldMode, null>) => {
+      let primaryDns: string;
+      let secondaryDns: string | undefined;
+      let title: string;
+
+      if (mode === "custom") {
+        const sel = settings.customDnsServers.find(
+          (c) => c.id === settings.selectedCustomDnsId,
+        );
+        if (!sel) throw new Error("لم تختر خادم DNS مخصّص بعد");
+        primaryDns = sel.primary;
+        secondaryDns = sel.secondary;
+        title = sel.name || MODES.custom.title;
+      } else {
+        const def = MODES[mode];
+        primaryDns = def.primaryDns;
+        secondaryDns = def.secondaryDns;
+        title = def.title;
+      }
+
+      const useDoH = mode === "military" ? settings.useDoH : false;
+
+      return {
+        sessionName: title,
+        primaryDns,
+        secondaryDns: secondaryDns ?? null,
+        useDoH,
+        modeId: mode,
+        blocklist: settings.blocklist,
+        whitelist: settings.whitelist,
+        excludedApps: settings.excludedApps,
+      };
+    },
+    [
+      settings.customDnsServers,
+      settings.selectedCustomDnsId,
+      settings.useDoH,
+      settings.blocklist,
+      settings.whitelist,
+      settings.excludedApps,
+    ],
+  );
 
   const setActiveMode = useCallback(
     async (mode: ShieldMode) => {
       if (mode === null) {
-        if (engineStatus === "ready") {
-          await stopVpnService();
-        }
+        if (engineStatus === "ready") await stopVpnService();
         setActiveModeState(null);
         setIsConnected(false);
         return;
@@ -185,8 +328,6 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const def = MODES[mode];
-
       try {
         const granted = await requestPermissionNative();
         if (!granted) {
@@ -197,16 +338,12 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const ok = await startVpnService(
-          def.title,
-          def.primaryDns,
-          def.secondaryDns ?? null,
-        );
-
+        const config = buildModeConfig(mode);
+        const ok = await startVpnService(config);
         if (!ok) {
           Alert.alert(
             "تعذر تفعيل الحماية",
-            "حدث خطأ أثناء بدء الحماية. تأكد من عدم وجود تطبيق VPN آخر مفعّل، ثم حاول مرة أخرى.",
+            "حدث خطأ أثناء بدء الحماية. تأكد من عدم وجود تطبيق VPN آخر مفعّل ثم حاول مرة أخرى.",
           );
           return;
         }
@@ -216,21 +353,18 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
       } catch (e: any) {
         Alert.alert(
           "تعذر تفعيل الحماية",
-          e?.message
-            ? `حدث خطأ: ${e.message}`
-            : "حدث خطأ غير متوقع. حاول مرة أخرى.",
+          e?.message ? `حدث خطأ: ${e.message}` : "حدث خطأ غير متوقع. حاول مرة أخرى.",
         );
       }
     },
-    [engineStatus],
+    [engineStatus, buildModeConfig],
   );
 
   const disconnect = useCallback(async () => {
-    if (engineStatus === "ready") {
-      await stopVpnService();
-    }
+    if (engineStatus === "ready") await stopVpnService();
     setActiveModeState(null);
     setIsConnected(false);
+    setStats(EMPTY_STATS);
   }, [engineStatus]);
 
   const value = useMemo<VpnContextValue>(
@@ -239,10 +373,21 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
       isConnected,
       uptimeSeconds,
       engineStatus,
+      stats,
       setActiveMode,
       disconnect,
+      refreshStats,
     }),
-    [activeMode, isConnected, uptimeSeconds, engineStatus, setActiveMode, disconnect],
+    [
+      activeMode,
+      isConnected,
+      uptimeSeconds,
+      engineStatus,
+      stats,
+      setActiveMode,
+      disconnect,
+      refreshStats,
+    ],
   );
 
   return <VpnContext.Provider value={value}>{children}</VpnContext.Provider>;

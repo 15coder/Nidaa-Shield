@@ -19,10 +19,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ## Artifacts
 
 - **nidaa-shield** (`artifacts/nidaa-shield`) — Expo mobile app "نداء شايلد".
-  - Arabic-only RTL UI, Cairo font, light mode only, white background.
-  - Glassmorphism mode cards (Smart Shield / Gaming Turbo / Family Guard / Military Privacy).
-  - Local-only state via AsyncStorage (no cloud, no accounts).
-  - **Native Android VpnService** implemented as a local Expo module at `artifacts/nidaa-shield/modules/nidaa-vpn/` (Kotlin). Installs system-wide DNS overrides without packet forwarding by combining `addAddress` + dummy unused route (`198.51.100.0/30`) + `addDnsServer` + foreground notification. No redirect to system settings; everything happens in-app after the standard Android VPN consent dialog.
+  - Arabic-only RTL UI, Cairo font, full **dark + light theme** (system / manual override), themed status bar.
+  - Glassmorphism mode cards (Smart Shield / Gaming Turbo / Family Guard / Military Privacy / Custom).
+  - Local-only state via AsyncStorage. `SettingsContext` persists theme, custom DNS servers, blocklist, whitelist, excluded apps, auto-start preference, and DoH toggle.
+  - **Native Android VpnService** as a local Expo module at `artifacts/nidaa-shield/modules/nidaa-vpn/` (Kotlin). Acts as an in-process **DNS proxy**: opens a tiny tun, parses IPv4/UDP DNS packets, applies the user's blocklist/whitelist (returns NXDOMAIN), forwards the rest via a `protect()`ed UDP socket, and in Military mode forwards over **DNS-over-HTTPS** to Cloudflare. Per-app exclusions via `addDisallowedApplication`. Live counters via `VpnStats` (total/blocked/forwarded/DoH/avg latency/last domain).
+  - **Quick Settings tile** (`NidaaTileService`) and **home-screen widget** (`NidaaWidgetProvider` + `res/layout/nidaa_widget.xml`) toggle protection without opening the app. **Boot receiver** (`NidaaBootReceiver`) re-applies the last session on device restart when the user opted in.
+  - In-app screens: home, `/stats` (live counters), `/speed-test` (compares Cloudflare/Google/AdGuard/Quad9/CleanBrowsing via DoH), `/settings` (theme, blocklist, whitelist, custom-dns, excluded-apps, advanced).
   - Standalone `package.json` (no workspace catalog refs) so EAS Build works directly from `artifacts/nidaa-shield` as base directory. Built via EAS Build → GitHub (`15coder/Nidaa-Shield`, branch `main`, profile `preview`). Cannot run in Expo Go — requires custom dev client / EAS APK.
   - iOS implementation is a no-op stub; Android is the only supported target.
 
