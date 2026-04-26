@@ -33,7 +33,7 @@ args = "PORT=24958 pnpm --filter @workspace/nidaa-shield run dev"
 waitForPort = 24958
 
 [agent]
-stack = "PNPM_WORKSPACE"
+stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
 
 [postMerge]
