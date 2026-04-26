@@ -98,6 +98,12 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     ? "rgba(180, 220, 245, 0.85)"
     : "rgba(0, 80, 120, 0.75)";
 
+  // Active "مفعّل" pill — soft translucent in dark mode, solid in light mode
+  const pillBg = isDark ? "rgba(51, 197, 255, 0.18)" : colors.primary;
+  const pillBorder = isDark ? "rgba(51, 197, 255, 0.45)" : "transparent";
+  const pillTextColor = isDark ? colors.primary : colors.primaryForeground;
+  const pillDotColor = isDark ? colors.primary : "#FFFFFF";
+
   return (
     <Animated.View
       style={[
@@ -218,15 +224,21 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                   <View
                     style={[
                       styles.activePill,
-                      { backgroundColor: colors.primary },
+                      {
+                        backgroundColor: pillBg,
+                        borderColor: pillBorder,
+                        borderWidth: isDark ? 1 : 0,
+                      },
                     ]}
                   >
-                    <View style={styles.activePillDot} />
-                    <Text
+                    <View
                       style={[
-                        styles.activePillText,
-                        { color: colors.primaryForeground },
+                        styles.activePillDot,
+                        { backgroundColor: pillDotColor },
                       ]}
+                    />
+                    <Text
+                      style={[styles.activePillText, { color: pillTextColor }]}
                     >
                       مفعّل
                     </Text>

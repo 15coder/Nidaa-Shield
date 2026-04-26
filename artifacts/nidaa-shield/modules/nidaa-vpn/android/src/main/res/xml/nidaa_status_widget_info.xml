@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="280dp"
+    android:minHeight="180dp"
+    android:initialLayout="@layout/nidaa_status_widget_layout"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="0" />

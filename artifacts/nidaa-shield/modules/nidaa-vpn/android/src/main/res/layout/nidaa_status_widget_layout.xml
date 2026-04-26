@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/nidaa_widget_bg"
+    android:layoutDirection="rtl">
+
+    <!-- Top: name + status pill -->
+    <LinearLayout
+        android:id="@+id/status_open_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <View
+            android:id="@+id/status_indicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/nidaa_dot_inactive"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/status_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="نداء شايلد"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textDirection="rtl" />
+
+        <TextView
+            android:id="@+id/status_state_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#33C5FF"
+            android:textSize="11sp"
+            android:textDirection="rtl"
+            android:gravity="end"
+            android:singleLine="true"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/status_session_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#8B95A1"
+        android:textSize="11sp"
+        android:textDirection="rtl"
+        android:layout_marginTop="2dp" />
+
+    <!-- Stats row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:layout_marginTop="12dp"
+        android:layoutDirection="rtl">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/nidaa_stat_bg">
+            <TextView
+                android:id="@+id/status_stat_blocked"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#FF7A8C"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="محجوب"
+                android:textColor="#8B95A1"
+                android:textSize="9sp"
+                android:textDirection="rtl"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/nidaa_stat_bg">
+            <TextView
+                android:id="@+id/status_stat_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#33C5FF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="استعلام"
+                android:textColor="#8B95A1"
+                android:textSize="9sp"
+                android:textDirection="rtl"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/nidaa_stat_bg">
+            <TextView
+                android:id="@+id/status_stat_uptime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0د"
+                android:textColor="#9B6CFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="مدّة"
+                android:textColor="#8B95A1"
+                android:textSize="9sp"
+                android:textDirection="rtl"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Power button -->
+    <LinearLayout
+        android:id="@+id/status_power_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/nidaa_power_off">
+        <TextView
+            android:id="@+id/status_power_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="تشغيل"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textDirection="rtl" />
+    </LinearLayout>
+</LinearLayout>

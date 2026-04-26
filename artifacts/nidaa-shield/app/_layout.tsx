@@ -39,7 +39,6 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="index" />
-      <Stack.Screen name="stats" />
       <Stack.Screen name="speed-test" />
       <Stack.Screen name="settings/index" />
       <Stack.Screen name="settings/custom-dns" />

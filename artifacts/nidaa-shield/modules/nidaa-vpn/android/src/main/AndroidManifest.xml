@@ -18,9 +18,55 @@
       </intent-filter>
     </service>
 
+    <!-- Master toggle tile -->
     <service
       android:name="expo.modules.nidaavpn.NidaaTileService"
       android:label="نداء شايلد"
+      android:icon="@android:drawable/ic_lock_lock"
+      android:exported="true"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
+    <!-- Per-mode quick settings tiles -->
+    <service
+      android:name="expo.modules.nidaavpn.SmartModeTileService"
+      android:label="الدرع الذكي"
+      android:icon="@android:drawable/ic_menu_view"
+      android:exported="true"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
+    <service
+      android:name="expo.modules.nidaavpn.GamingModeTileService"
+      android:label="توربو الألعاب"
+      android:icon="@android:drawable/ic_media_play"
+      android:exported="true"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
+    <service
+      android:name="expo.modules.nidaavpn.FamilyModeTileService"
+      android:label="حارس العائلة"
+      android:icon="@android:drawable/ic_menu_myplaces"
+      android:exported="true"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
+    <service
+      android:name="expo.modules.nidaavpn.MilitaryModeTileService"
+      android:label="الخصوصية العسكرية"
       android:icon="@android:drawable/ic_lock_lock"
       android:exported="true"
       android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
@@ -39,9 +85,10 @@
       </intent-filter>
     </receiver>
 
+    <!-- Compact toggle widget (existing) -->
     <receiver
       android:name="expo.modules.nidaavpn.NidaaWidgetProvider"
-      android:label="نداء شايلد"
+      android:label="نداء شايلد - مفتاح سريع"
       android:exported="true">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -50,6 +97,38 @@
       <meta-data
         android:name="android.appwidget.provider"
         android:resource="@xml/nidaa_widget_info" />
+    </receiver>
+
+    <!-- Mode picker widget (4 modes in one tile) -->
+    <receiver
+      android:name="expo.modules.nidaavpn.NidaaModesWidgetProvider"
+      android:label="نداء شايلد - الأوضاع"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_SMART" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_GAMING" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_FAMILY" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_MODE_MILITARY" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/nidaa_modes_widget_info" />
+    </receiver>
+
+    <!-- Large status widget with live stats -->
+    <receiver
+      android:name="expo.modules.nidaavpn.NidaaStatusWidgetProvider"
+      android:label="نداء شايلد - حالة الحماية"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_STATUS_TOGGLE" />
+        <action android:name="expo.modules.nidaavpn.WIDGET_STATUS_OPEN" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/nidaa_status_widget_info" />
     </receiver>
   </application>
 </manifest>

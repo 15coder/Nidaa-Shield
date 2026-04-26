@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   Alert,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -28,24 +27,20 @@ export default function SettingsScreen() {
     if (Platform.OS !== "android") {
       Alert.alert(
         "غير مدعوم",
-        "مفتاح الإعدادات السريعة متاح فقط على أجهزة الأندرويد.",
+        "مفاتيح الإعدادات السريعة متاحة فقط على أجهزة الأندرويد.",
       );
       return;
     }
-    // Android Q+ open quick settings panel directly
-    Linking.sendIntent("android.settings.panel.action.INTERNET_CONNECTIVITY")
-      .catch(() => {
-        Alert.alert(
-          "كيفية الإضافة",
-          "اسحب من أعلى الشاشة بإصبعين لفتح الإعدادات السريعة، ثم اضغط على رمز القلم وأضف بطاقة \"نداء شايلد\".",
-        );
-      });
+    Alert.alert(
+      "كيفية الإضافة",
+      "اسحب من أعلى الشاشة بإصبعين لفتح الإعدادات السريعة، ثم اضغط على رمز القلم (تعديل الأزرار) وستجد عدة بطاقات لنداء شايلد:\n\n• نداء شايلد (تشغيل/إيقاف)\n• الدرع الذكي\n• توربو الألعاب\n• حارس العائلة\n• الخصوصية العسكرية\n\nاسحب البطاقات التي تريدها إلى الأعلى.",
+    );
   };
 
   const showWidgetHowTo = () => {
     Alert.alert(
       "إضافة الويدجت",
-      "اضغط مطوّلاً على شاشتك الرئيسية، ثم اختر \"إضافة ودجت\" أو \"Widgets\"، وابحث عن \"نداء شايلد\". سيظهر زرّ سريع للتشغيل والإيقاف.",
+      "اضغط مطوّلاً على مساحة فارغة في شاشتك الرئيسية، ثم اختر \"إضافة ودجت\" أو \"Widgets\"، وابحث عن \"نداء شايلد\". ستجد عدة تصاميم:\n\n• ودجت سريع (مفتاح تشغيل/إيقاف)\n• ودجت الأوضاع (4 أوضاع بضغطة)\n• ودجت الحالة الكبير\n\nاختر التصميم الذي يناسبك ثم اسحبه إلى شاشتك.",
     );
   };
 
@@ -87,14 +82,6 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="الأدوات" colors={colors}>
-          <NavRow
-            icon="bar-chart-outline"
-            iconColor={colors.primary}
-            label="إحصائيات الحماية"
-            hint="عدد الاستعلامات والمحظور والمسموح"
-            onPress={() => router.push("/stats")}
-            colors={colors}
-          />
           <NavRow
             icon="speedometer-outline"
             iconColor="#1B7A4B"

@@ -98,16 +98,27 @@ class NidaaVpnService : VpnService() {
   }
 
   private fun notifySystemSurfaces() {
-    // Refresh the home-screen widget(s) so they show current state.
+    // Refresh all home-screen widgets so they show current state.
     try { NidaaWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
-    // Ask the system to re-bind our quick-settings tile so its label/state update.
+    try { NidaaModesWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
+    try { NidaaStatusWidgetProvider.updateAll(applicationContext) } catch (_: Throwable) {}
+    // Ask the system to re-bind all our quick-settings tiles so their labels/states update.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      try {
-        TileService.requestListeningState(
-          applicationContext,
-          ComponentName(applicationContext, NidaaTileService::class.java),
-        )
-      } catch (_: Throwable) {}
+      val tiles = listOf(
+        NidaaTileService::class.java,
+        SmartModeTileService::class.java,
+        GamingModeTileService::class.java,
+        FamilyModeTileService::class.java,
+        MilitaryModeTileService::class.java,
+      )
+      for (cls in tiles) {
+        try {
+          TileService.requestListeningState(
+            applicationContext,
+            ComponentName(applicationContext, cls),
+          )
+        } catch (_: Throwable) {}
+      }
     }
   }
 

@@ -11,6 +11,7 @@ interface Props {
 
 const WHATSAPP_URL = "https://wa.me/963980362204";
 const INSTAGRAM_URL = "https://www.instagram.com/15coder";
+const TELEGRAM_URL = "https://t.me/nidaashield";
 
 export function Footer({ onAboutPress }: Props) {
   const colors = useColors();
@@ -59,6 +60,19 @@ export function Footer({ onAboutPress }: Props) {
           <Ionicons name="logo-instagram" size={15} color={colors.foreground} />
           <Text style={[styles.socialLabel, { color: colors.foreground }]}>
             15coder
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => open(TELEGRAM_URL)}
+          style={({ pressed }) => [
+            styles.socialBtn,
+            { borderColor: colors.cardBorder, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Ionicons name="paper-plane" size={14} color={colors.foreground} />
+          <Text style={[styles.socialLabel, { color: colors.foreground }]}>
+            nidaashield
           </Text>
         </Pressable>
       </View>
