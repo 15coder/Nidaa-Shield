@@ -29,6 +29,7 @@ export function StatusOrb() {
   const { activeMode, isConnected, uptimeSeconds, disconnect } = useVpn();
   const ring = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
+  const isDark = colors.scheme === "dark";
 
   useEffect(() => {
     if (isConnected) {
@@ -82,17 +83,64 @@ export function StatusOrb() {
     disconnect();
   };
 
+  // ---------- Theme-aware tokens ----------
+  const cardActiveBg = isDark
+    ? "rgba(0, 180, 255, 0.06)"
+    : "rgba(0, 180, 255, 0.04)";
+  const cardInactiveBg = isDark ? colors.cardSolid : "rgba(245, 247, 250, 0.6)";
+  const cardActiveBorder = isDark
+    ? "rgba(0, 180, 255, 0.35)"
+    : "rgba(0, 180, 255, 0.25)";
+  const cardInactiveBorder = isDark
+    ? "rgba(255, 255, 255, 0.08)"
+    : "rgba(0, 0, 0, 0.06)";
+
+  const orbActiveGradient: [string, string, string] = isDark
+    ? ["#1A2A38", "#162636", "#0F2030"]
+    : ["#FFFFFF", "#E8F7FF", "#BCE5FF"];
+  const orbInactiveGradient: [string, string, string] = isDark
+    ? ["#1A222C", "#161C24", "#0F141A"]
+    : ["#F8F8FA", "#EDEDF0", "#E0E0E4"];
+  const orbBorderColor = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(255,255,255,0.9)";
+  const orbIconActiveColor = isDark ? colors.primary : colors.primaryDark;
+
+  const inactivePillBg = isDark
+    ? "rgba(255,255,255,0.06)"
+    : "rgba(0,0,0,0.06)";
+
+  // The disconnect button — DO NOT use colors.foreground directly,
+  // because in dark mode that becomes pure white and produces an
+  // ugly white "rectangle" stuck in the middle of the active card.
+  const disconnectBg = isConnected
+    ? isDark
+      ? colors.primarySoft
+      : colors.foreground
+    : isDark
+      ? "rgba(255,255,255,0.05)"
+      : "rgba(0,0,0,0.04)";
+  const disconnectBorderColor = isDark
+    ? colors.cardActiveBorder
+    : "transparent";
+  const disconnectBorderWidth = isDark && isConnected ? 1 : 0;
+  const disconnectTextColor = isConnected
+    ? isDark
+      ? colors.primary
+      : "#FFFFFF"
+    : colors.mutedForeground;
+
+  const bottomBorderColor = isDark
+    ? "rgba(255,255,255,0.06)"
+    : "rgba(0,0,0,0.06)";
+
   return (
     <View
       style={[
         styles.card,
         {
-          backgroundColor: isConnected
-            ? "rgba(0, 180, 255, 0.04)"
-            : "rgba(245, 247, 250, 0.6)",
-          borderColor: isConnected
-            ? "rgba(0, 180, 255, 0.25)"
-            : "rgba(0, 0, 0, 0.06)",
+          backgroundColor: isConnected ? cardActiveBg : cardInactiveBg,
+          borderColor: isConnected ? cardActiveBorder : cardInactiveBorder,
         },
       ]}
     >
@@ -105,7 +153,9 @@ export function StatusOrb() {
               {
                 borderColor: isConnected
                   ? colors.primaryGlow
-                  : "rgba(10,10,10,0.06)",
+                  : isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(10,10,10,0.06)",
                 transform: [{ rotate }],
               },
             ]}
@@ -123,14 +173,10 @@ export function StatusOrb() {
             ]}
           >
             <LinearGradient
-              colors={
-                isConnected
-                  ? ["#FFFFFF", "#E8F7FF", "#BCE5FF"]
-                  : ["#F8F8FA", "#EDEDF0", "#E0E0E4"]
-              }
+              colors={isConnected ? orbActiveGradient : orbInactiveGradient}
               start={{ x: 0.2, y: 0.1 }}
               end={{ x: 0.8, y: 1 }}
-              style={styles.orbGradient}
+              style={[styles.orbGradient, { borderColor: orbBorderColor }]}
             >
               <Ionicons
                 name={
@@ -140,7 +186,7 @@ export function StatusOrb() {
                 }
                 size={28}
                 color={
-                  isConnected ? colors.primaryDark : colors.mutedForeground
+                  isConnected ? orbIconActiveColor : colors.mutedForeground
                 }
               />
             </LinearGradient>
@@ -153,9 +199,7 @@ export function StatusOrb() {
             style={[
               styles.statusPill,
               {
-                backgroundColor: isConnected
-                  ? colors.primary
-                  : "rgba(0,0,0,0.06)",
+                backgroundColor: isConnected ? colors.primary : inactivePillBg,
               },
             ]}
           >
@@ -191,7 +235,7 @@ export function StatusOrb() {
       </View>
 
       {/* Bottom row: uptime + disconnect */}
-      <View style={styles.bottomRow}>
+      <View style={[styles.bottomRow, { borderTopColor: bottomBorderColor }]}>
         <View style={styles.metricBox}>
           <Text
             style={[styles.metricLabel, { color: colors.mutedForeground }]}
@@ -209,9 +253,9 @@ export function StatusOrb() {
           style={({ pressed }) => [
             styles.disconnectBtn,
             {
-              backgroundColor: isConnected
-                ? colors.foreground
-                : "rgba(0,0,0,0.04)",
+              backgroundColor: disconnectBg,
+              borderColor: disconnectBorderColor,
+              borderWidth: disconnectBorderWidth,
               opacity: isConnected ? (pressed ? 0.85 : 1) : 0.5,
             },
           ]}
@@ -219,13 +263,13 @@ export function StatusOrb() {
           <Ionicons
             name={isConnected ? "power" : "power-outline"}
             size={13}
-            color={isConnected ? "#FFFFFF" : colors.mutedForeground}
+            color={disconnectTextColor}
           />
           <Text
             style={[
               styles.disconnectText,
               {
-                color: isConnected ? "#FFFFFF" : colors.mutedForeground,
+                color: disconnectTextColor,
               },
             ]}
           >
@@ -278,7 +322,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.9)",
   },
   infoCol: {
     flex: 1,
@@ -316,7 +359,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.06)",
   },
   metricBox: {
     alignItems: "flex-end",

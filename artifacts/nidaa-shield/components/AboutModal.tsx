@@ -21,6 +21,20 @@ interface Props {
 export function AboutModal({ visible, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const isDark = colors.scheme === "dark";
+
+  // Theme-aware tokens
+  const sheetBg = isDark
+    ? "rgba(15, 22, 30, 0.96)"
+    : "rgba(255, 255, 255, 0.95)";
+  const handleBg = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)";
+  const dividerBg = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+  const bulletIconBg = isDark
+    ? "rgba(255,255,255,0.06)"
+    : "rgba(0,0,0,0.05)";
+  const closeBg = isDark ? colors.primary : colors.foreground;
+  const closeText = isDark ? colors.primaryForeground : colors.primaryForeground;
+  const blurTint: "light" | "dark" = isDark ? "dark" : "light";
 
   return (
     <Modal
@@ -34,19 +48,20 @@ export function AboutModal({ visible, onClose }: Props) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <BlurView
           intensity={70}
-          tint="light"
+          tint={blurTint}
           style={[
             styles.sheet,
             {
+              backgroundColor: sheetBg,
               borderColor: colors.cardActiveBorder,
               paddingBottom: Math.max(insets.bottom, 24),
             },
           ]}
         >
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: handleBg }]} />
 
           <View style={styles.headerRow}>
-            <View style={[styles.iconBadge, { backgroundColor: colors.foreground }]}>
+            <View style={[styles.iconBadge, { backgroundColor: colors.primary }]}>
               <Ionicons name="lock-closed" size={20} color="#FFFFFF" />
             </View>
             <Text style={[styles.title, { color: colors.foreground }]}>
@@ -68,31 +83,35 @@ export function AboutModal({ visible, onClose }: Props) {
               نشاطك لأن التطبيق لا يرسل أي بيانات إلى أي جهة خارجية.
             </Text>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: dividerBg }]} />
 
             <Bullet
               icon="checkmark-circle"
               title="تشغيل محلي بالكامل"
               text="جميع الإعدادات والحالات محفوظة على ذاكرة جهازك فقط."
               colors={colors}
+              iconBg={bulletIconBg}
             />
             <Bullet
               icon="shield-checkmark"
               title="بدون تتبع"
               text="لا نستخدم أي مكتبة تحليلات أو تتبع للأحداث."
               colors={colors}
+              iconBg={bulletIconBg}
             />
             <Bullet
               icon="flash"
               title="استجابة فورية"
               text="استجابة DNS بأقل من 10ms لضمان سلاسة التصفح."
               colors={colors}
+              iconBg={bulletIconBg}
             />
             <Bullet
               icon="key"
               title="أنت تملك المفاتيح"
               text="لا حسابات، لا تسجيل دخول، لا أرقام هاتف. التطبيق يعمل بمجرد منح إذن الـ VPN داخل الجهاز."
               colors={colors}
+              iconBg={bulletIconBg}
             />
           </ScrollView>
 
@@ -101,12 +120,12 @@ export function AboutModal({ visible, onClose }: Props) {
             style={({ pressed }) => [
               styles.closeBtn,
               {
-                backgroundColor: colors.foreground,
+                backgroundColor: closeBg,
                 opacity: pressed ? 0.85 : 1,
               },
             ]}
           >
-            <Text style={[styles.closeText, { color: colors.primaryForeground }]}>
+            <Text style={[styles.closeText, { color: closeText }]}>
               فهمت
             </Text>
           </Pressable>
@@ -121,21 +140,23 @@ function Bullet({
   title,
   text,
   colors,
+  iconBg,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   text: string;
   colors: ReturnType<typeof useColors>;
+  iconBg: string;
 }) {
   return (
     <View style={styles.bulletRow}>
       <View
         style={[
           styles.bulletIcon,
-          { backgroundColor: "rgba(0,0,0,0.05)" },
+          { backgroundColor: iconBg },
         ]}
       >
-        <Ionicons name={icon} size={16} color={colors.foreground} />
+        <Ionicons name={icon} size={16} color={colors.primary} />
       </View>
       <View style={{ flex: 1, alignItems: "flex-end" }}>
         <Text style={[styles.bulletTitle, { color: colors.foreground }]}>
@@ -155,7 +176,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: "rgba(255,255,255,0.95)",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     borderWidth: 1,
@@ -168,7 +188,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "rgba(0,0,0,0.15)",
     marginBottom: 14,
   },
   headerRow: {
@@ -206,7 +225,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.08)",
     marginVertical: 16,
   },
   bulletRow: {

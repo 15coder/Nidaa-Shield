@@ -89,6 +89,8 @@
     <receiver
       android:name="expo.modules.nidaavpn.NidaaWidgetProvider"
       android:label="نداء شايلد - مفتاح سريع"
+      android:icon="@mipmap/ic_launcher"
+      android:enabled="true"
       android:exported="true">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -103,6 +105,8 @@
     <receiver
       android:name="expo.modules.nidaavpn.NidaaModesWidgetProvider"
       android:label="نداء شايلد - الأوضاع"
+      android:icon="@mipmap/ic_launcher"
+      android:enabled="true"
       android:exported="true">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -120,6 +124,8 @@
     <receiver
       android:name="expo.modules.nidaavpn.NidaaStatusWidgetProvider"
       android:label="نداء شايلد - حالة الحماية"
+      android:icon="@mipmap/ic_launcher"
+      android:enabled="true"
       android:exported="true">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
