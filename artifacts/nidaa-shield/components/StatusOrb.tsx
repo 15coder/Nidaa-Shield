@@ -13,6 +13,7 @@ import {
 } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { getModeColors } from "@/hooks/useModeColors";
 import { MODES, useVpn } from "@/contexts/VpnContext";
 
 function formatTime(s: number) {
@@ -31,12 +32,14 @@ export function StatusOrb() {
   const pulse = useRef(new Animated.Value(1)).current;
   const isDark = colors.scheme === "dark";
 
+  const mc = getModeColors(activeMode);
+
   useEffect(() => {
     if (isConnected) {
       const r = Animated.loop(
         Animated.timing(ring, {
           toValue: 1,
-          duration: 4000,
+          duration: 4200,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
@@ -45,13 +48,13 @@ export function StatusOrb() {
         Animated.sequence([
           Animated.timing(pulse, {
             toValue: 1.06,
-            duration: 1100,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulse, {
             toValue: 1,
-            duration: 1100,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -83,14 +86,11 @@ export function StatusOrb() {
     disconnect();
   };
 
-  // ---------- Theme-aware tokens ----------
   const cardActiveBg = isDark
-    ? "rgba(0, 180, 255, 0.06)"
-    : "rgba(0, 180, 255, 0.04)";
+    ? `rgba(${hexToRgb(mc.primary)},0.07)`
+    : `rgba(${hexToRgb(mc.primary)},0.05)`;
   const cardInactiveBg = colors.cardSolid;
-  const cardActiveBorder = isDark
-    ? "rgba(0, 180, 255, 0.35)"
-    : "rgba(0, 180, 255, 0.25)";
+  const cardActiveBorder = isDark ? mc.border : mc.border.replace("0.38", "0.25");
   const cardInactiveBorder = isDark
     ? "rgba(255, 255, 255, 0.08)"
     : "rgba(0, 0, 0, 0.06)";
@@ -104,35 +104,36 @@ export function StatusOrb() {
   const orbBorderColor = isDark
     ? "rgba(255,255,255,0.08)"
     : "rgba(255,255,255,0.9)";
-  const orbIconActiveColor = isDark ? colors.primary : colors.primaryDark;
+  const orbIconActiveColor = isDark ? mc.primary : mc.dark;
 
   const inactivePillBg = isDark
     ? "rgba(255,255,255,0.06)"
     : "rgba(0,0,0,0.06)";
 
-  // The disconnect button — DO NOT use colors.foreground directly,
-  // because in dark mode that becomes pure white and produces an
-  // ugly white "rectangle" stuck in the middle of the active card.
   const disconnectBg = isConnected
     ? isDark
-      ? colors.primarySoft
+      ? mc.soft
       : colors.foreground
     : isDark
       ? "rgba(255,255,255,0.05)"
       : "rgba(0,0,0,0.04)";
-  const disconnectBorderColor = isDark
-    ? colors.cardActiveBorder
-    : "transparent";
+  const disconnectBorderColor = isDark ? mc.border : "transparent";
   const disconnectBorderWidth = isDark && isConnected ? 1 : 0;
   const disconnectTextColor = isConnected
     ? isDark
-      ? colors.primary
+      ? mc.primary
       : "#FFFFFF"
     : colors.mutedForeground;
 
   const bottomBorderColor = isDark
     ? "rgba(255,255,255,0.06)"
     : "rgba(0,0,0,0.06)";
+
+  const ringBorderColor = isConnected
+    ? mc.glow
+    : isDark
+      ? "rgba(255,255,255,0.08)"
+      : "rgba(10,10,10,0.06)";
 
   return (
     <View
@@ -144,6 +145,11 @@ export function StatusOrb() {
         },
       ]}
     >
+      {/* Glass shine on top of the card */}
+      {isConnected && (
+        <View pointerEvents="none" style={styles.glassShine} />
+      )}
+
       <View style={styles.row}>
         {/* Orb on the right (RTL) */}
         <View style={styles.orbContainer}>
@@ -151,11 +157,7 @@ export function StatusOrb() {
             style={[
               styles.ring,
               {
-                borderColor: isConnected
-                  ? colors.primaryGlow
-                  : isDark
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(10,10,10,0.06)",
+                borderColor: ringBorderColor,
                 transform: [{ rotate }],
               },
             ]}
@@ -164,9 +166,7 @@ export function StatusOrb() {
             style={[
               styles.orb,
               {
-                shadowColor: isConnected
-                  ? colors.primaryGlow
-                  : "rgba(0,0,0,0.1)",
+                shadowColor: isConnected ? mc.glow : "rgba(0,0,0,0.1)",
                 shadowOpacity: isConnected ? 0.9 : 0.2,
                 transform: [{ scale: pulse }],
               },
@@ -199,7 +199,7 @@ export function StatusOrb() {
             style={[
               styles.statusPill,
               {
-                backgroundColor: isConnected ? colors.primary : inactivePillBg,
+                backgroundColor: isConnected ? mc.primary : inactivePillBg,
               },
             ]}
           >
@@ -281,12 +281,30 @@ export function StatusOrb() {
   );
 }
 
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+}
+
 const styles = StyleSheet.create({
   card: {
     borderRadius: 26,
     borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    overflow: "hidden",
+  },
+  glassShine: {
+    position: "absolute",
+    top: 0,
+    left: 24,
+    right: 24,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    borderRadius: 1,
   },
   row: {
     flexDirection: "row-reverse",

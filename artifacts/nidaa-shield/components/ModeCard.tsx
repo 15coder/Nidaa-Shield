@@ -14,6 +14,7 @@ import {
 
 import { useColors } from "@/hooks/useColors";
 import { useSettings } from "@/contexts/SettingsContext";
+import { getModeColors } from "@/hooks/useModeColors";
 import type { ModeDefinition } from "@/contexts/VpnContext";
 
 interface Props {
@@ -30,19 +31,46 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   const colors = useColors();
   const settings = useSettings();
   const isDark = colors.scheme === "dark";
+  const mc = getModeColors(mode.id);
 
   const breathe = useRef(new Animated.Value(1)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
   const glowOpacity = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+  const activateScale = useRef(new Animated.Value(1)).current;
+  const shineOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(glowOpacity, {
       toValue: isActive ? 1 : 0,
-      duration: 300,
+      duration: 400,
       easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     }).start();
-  }, [isActive, glowOpacity]);
+
+    if (isActive) {
+      Animated.sequence([
+        Animated.spring(activateScale, {
+          toValue: 1.06,
+          speed: 28,
+          bounciness: 10,
+          useNativeDriver: true,
+        }),
+        Animated.spring(activateScale, {
+          toValue: 1,
+          speed: 22,
+          bounciness: 6,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      Animated.sequence([
+        Animated.timing(shineOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
+        Animated.timing(shineOpacity, { toValue: 0.35, duration: 600, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.timing(shineOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+    }
+  }, [isActive, glowOpacity, activateScale, shineOpacity]);
 
   useEffect(() => {
     if (isActive) {
@@ -50,13 +78,13 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         Animated.sequence([
           Animated.timing(breathe, {
             toValue: 1.12,
-            duration: 1500,
+            duration: 1600,
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
           }),
           Animated.timing(breathe, {
             toValue: 1,
-            duration: 1500,
+            duration: 1600,
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
           }),
@@ -102,23 +130,18 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
     onPress();
   };
 
-  const accent = colors.primary;
-  const accentDark = colors.primaryDark;
-  const accentGlow = colors.primaryGlow;
-  const accentSoft = colors.primarySoft;
-  const activeBorder = colors.cardActiveBorder;
-
-  const cardBg = colors.cardSolid;
-  const activeBg = isDark
-    ? "rgba(0, 180, 255, 0.08)"
-    : "rgba(0, 180, 255, 0.07)";
-
   const inactiveIconBg = isDark
     ? "rgba(255,255,255,0.06)"
     : "rgba(0,0,0,0.05)";
   const inactiveIconBorder = isDark
     ? "rgba(255,255,255,0.10)"
     : "rgba(0,0,0,0.08)";
+
+  const activeBg = isDark
+    ? `rgba(${hexToRgb(mc.primary)},0.09)`
+    : `rgba(${hexToRgb(mc.primary)},0.07)`;
+
+  const cardBg = colors.cardSolid;
 
   return (
     <Animated.View
@@ -130,7 +153,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
         style={[
           styles.halo,
           {
-            shadowColor: accentGlow,
+            shadowColor: mc.glow,
             opacity: glowOpacity,
           },
         ]}
@@ -146,15 +169,21 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
           styles.card,
           {
             backgroundColor: isActive ? activeBg : cardBg,
-            borderColor: isActive ? activeBorder : colors.cardBorder,
+            borderColor: isActive ? mc.border : colors.cardBorder,
             borderWidth: isActive ? 1.5 : 1,
           },
         ]}
       >
+        {/* Glass shine — top highlight line */}
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.glassShine, { opacity: shineOpacity }]}
+        />
+
         {/* Left accent bar — visible only when active */}
         {isActive && (
           <LinearGradient
-            colors={[accent, accentDark]}
+            colors={[mc.gradientStart, mc.gradientEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
             style={styles.accentBar}
@@ -166,20 +195,20 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
           <Animated.View
             style={[
               styles.iconWrapper,
-              { transform: [{ scale: breathe }] },
+              { transform: [{ scale: breathe }, { scale: isActive ? activateScale : 1 }] },
             ]}
           >
             {isActive ? (
               <LinearGradient
-                colors={[accent, accentDark]}
+                colors={[mc.gradientStart, mc.gradientEnd]}
                 start={{ x: 0.1, y: 0 }}
                 end={{ x: 0.9, y: 1 }}
                 style={[
                   styles.iconCircle,
                   {
-                    shadowColor: accentGlow,
+                    shadowColor: mc.glow,
                     shadowOpacity: 1,
-                    shadowRadius: 16,
+                    shadowRadius: 18,
                     shadowOffset: { width: 0, height: 4 },
                     elevation: 10,
                   },
@@ -217,7 +246,7 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
               style={[
                 styles.title,
                 {
-                  color: isActive ? accent : colors.foreground,
+                  color: isActive ? mc.primary : colors.foreground,
                 },
               ]}
               numberOfLines={1}
@@ -230,8 +259,8 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                 {
                   color: isActive
                     ? isDark
-                      ? "rgba(200,220,240,0.75)"
-                      : "rgba(20,40,70,0.65)"
+                      ? "rgba(200,230,215,0.72)"
+                      : "rgba(20,50,40,0.60)"
                     : colors.mutedForeground,
                 },
               ]}
@@ -248,13 +277,13 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
                 style={[
                   styles.activeBadge,
                   {
-                    backgroundColor: accentSoft,
-                    borderColor: activeBorder,
+                    backgroundColor: mc.soft,
+                    borderColor: mc.border,
                   },
                 ]}
               >
-                <Ionicons name="checkmark" size={11} color={accent} />
-                <Text style={[styles.activeBadgeLabel, { color: accent }]}>
+                <Ionicons name="checkmark" size={11} color={mc.primary} />
+                <Text style={[styles.activeBadgeLabel, { color: mc.primary }]}>
                   مفعّل
                 </Text>
               </View>
@@ -286,6 +315,14 @@ export function ModeCard({ mode, isActive, onPress }: Props) {
   );
 }
 
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+}
+
 const styles = StyleSheet.create({
   wrapper: {
     borderRadius: CARD_RADIUS,
@@ -295,8 +332,8 @@ const styles = StyleSheet.create({
     borderRadius: CARD_RADIUS + 6,
     margin: -6,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 18,
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
     elevation: 0,
   },
   card: {
@@ -304,6 +341,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     overflow: "hidden",
+  },
+  glassShine: {
+    position: "absolute",
+    top: 0,
+    left: 20,
+    right: 20,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.28)",
+    borderRadius: 1,
   },
   accentBar: {
     position: "absolute",

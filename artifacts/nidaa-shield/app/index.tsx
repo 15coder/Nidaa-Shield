@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AboutModal } from "@/components/AboutModal";
@@ -11,7 +12,53 @@ import { SalatCard } from "@/components/SalatCard";
 import { StatusOrb } from "@/components/StatusOrb";
 import { useSettings } from "@/contexts/SettingsContext";
 import { MODES, useVpn, type ShieldMode } from "@/contexts/VpnContext";
+import { MODE_COLORS } from "@/hooks/useModeColors";
 import { useColors } from "@/hooks/useColors";
+
+const MODE_IDS = ["smart", "gaming", "family", "military", "custom"] as const;
+
+function ModeAura({ activeMode, isConnected }: { activeMode: ShieldMode; isConnected: boolean }) {
+  const colors = useColors();
+  const isDark = colors.scheme === "dark";
+
+  const opacities = useRef(
+    Object.fromEntries(MODE_IDS.map((id) => [id, new Animated.Value(0)])) as Record<string, Animated.Value>
+  ).current;
+
+  useEffect(() => {
+    const anims = MODE_IDS.map((id) =>
+      Animated.timing(opacities[id], {
+        toValue: isConnected && activeMode === id ? 1 : 0,
+        duration: 900,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      })
+    );
+    Animated.parallel(anims).start();
+  }, [activeMode, isConnected, opacities]);
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {MODE_IDS.map((id) => {
+        const mc = MODE_COLORS[id];
+        const auraColor = isDark ? mc.auraDark : mc.auraLight;
+        return (
+          <Animated.View
+            key={id}
+            style={[StyleSheet.absoluteFill, { opacity: opacities[id] }]}
+          >
+            <LinearGradient
+              colors={[auraColor, "transparent", "transparent"]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 0.55 }}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -21,8 +68,6 @@ export default function HomeScreen() {
   const [aboutVisible, setAboutVisible] = useState(false);
   const [firstConnVisible, setFirstConnVisible] = useState(false);
 
-  // Show the "first connection" animated diagram once after the user
-  // successfully activates protection for the very first time.
   useEffect(() => {
     if (
       isConnected &&
@@ -62,6 +107,9 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {/* Dynamic mode background aura */}
+      <ModeAura activeMode={activeMode} isConnected={isConnected} />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
