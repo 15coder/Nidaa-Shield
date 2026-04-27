@@ -9,11 +9,12 @@
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "doctor": "npx --yes expo-doctor@latest",
+    "preflight": "CI=1 pnpm exec expo install --check && tsc -p tsconfig.json --noEmit && CI=1 npx --yes expo-doctor@latest",
     "clean": "rm -rf node_modules .expo dist android ios && pnpm install && pnpm exec expo start --clear",
     "ota:preview": "pnpm exec eas update --branch preview --auto",
     "ota:production": "pnpm exec eas update --branch production --auto",
     "eas-build-pre-install": "echo \"[eas pre-install] using $(node -v) / $(npm -v) on EAS\"",
-    "eas-build-post-install": "pnpm exec expo install --check --non-interactive && pnpm exec expo prebuild --clean --platform android --no-install"
+    "eas-build-post-install": "CI=1 pnpm exec expo install --check && CI=1 pnpm exec expo prebuild --clean --platform android --no-install"
   },
   "expo": {
     "autolinking": {
