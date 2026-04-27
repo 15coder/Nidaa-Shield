@@ -87,6 +87,25 @@ class NidaaVpnService : VpnService() {
     val whitelist = intent?.getStringArrayExtra(EXTRA_WHITELIST)?.toSet() ?: emptySet()
     val excluded = intent?.getStringArrayExtra(EXTRA_EXCLUDED)?.toSet() ?: emptySet()
 
+    // If a tunnel is already up (e.g. user switched mode via the app or a quick-
+    // settings tile), tear it down BEFORE establishing the new one. Reusing a
+    // live tun across mode switches would (a) leak the old ParcelFileDescriptor,
+    // (b) leave the previous worker thread spinning on a stale file, and
+    // (c) skip the implicit OS-level DNS-cache flush that Android performs
+    // when the active VpnService rotates its underlying interface. Closing the
+    // tun forces every resolver — system and per-app — to re-query through the
+    // new mode's DNS, which is the user-visible "DNS flush" they expect when
+    // toggling between Smart Shield, Family Guard, etc.
+    if (running || tun != null) {
+      running = false
+      try { tun?.close() } catch (_: Throwable) {}
+      tun = null
+      try { workerThread?.interrupt() } catch (_: Throwable) {}
+      try { notifThread?.interrupt() } catch (_: Throwable) {}
+      workerThread = null
+      notifThread = null
+    }
+
     VpnState.primaryDns = primary
     VpnState.secondaryDns = secondary
     VpnState.useDoH = useDoH
@@ -124,9 +143,15 @@ class NidaaVpnService : VpnService() {
    * the live blocked-count and active mode without leaving the app.
    */
   private fun notifLoop() {
+    // 10s refresh keeps the live "blocked X / total Y" counter feeling fresh
+    // without hammering the NotificationManager every 5s — at 5s, Doze and
+    // App Standby flag us as a high-frequency wakeup source on Android 12+,
+    // which can cause the service to be killed under aggressive battery
+    // savers. 10s is the sweet spot used by similar VPN apps (Blokada,
+    // AdGuard) and keeps us off the "battery hog" list.
     while (running) {
       try {
-        Thread.sleep(5_000)
+        Thread.sleep(10_000)
         if (!running) break
         startForegroundCompat(VpnState.sessionName ?: "نداء شايلد")
       } catch (_: InterruptedException) {

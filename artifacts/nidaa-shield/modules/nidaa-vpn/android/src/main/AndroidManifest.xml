@@ -7,6 +7,17 @@
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+  <!--
+    QUERY_ALL_PACKAGES is required so the "Excluded Apps" screen can list
+    the user's installed apps (PackageManager.getInstalledApplications on
+    targetSdk >= 30 returns an empty list without it). VPN apps are an
+    explicitly approved use-case under Google Play's package visibility
+    policy, but a declaration form must still be filed in the Play Console
+    when the app is uploaded:
+    https://support.google.com/googleplay/android-developer/answer/10158779
+  -->
+  <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
   <application>
     <service
       android:name="expo.modules.nidaavpn.NidaaVpnService"
