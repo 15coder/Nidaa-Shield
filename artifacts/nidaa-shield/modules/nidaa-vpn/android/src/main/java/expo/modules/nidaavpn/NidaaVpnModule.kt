@@ -71,6 +71,9 @@ class NidaaVpnModule : Module() {
           intent.putExtra(NidaaVpnService.EXTRA_SECONDARY, it)
         }
         intent.putExtra(NidaaVpnService.EXTRA_USE_DOH, config["useDoH"] as? Boolean ?: false)
+        (config["dohEndpoint"] as? String)?.let {
+          intent.putExtra(NidaaVpnService.EXTRA_DOH_ENDPOINT, it)
+        }
         (config["modeId"] as? String)?.let {
           intent.putExtra(NidaaVpnService.EXTRA_MODE_ID, it)
         }

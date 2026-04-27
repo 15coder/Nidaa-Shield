@@ -135,12 +135,12 @@ const colors = {
     text: "#0D1117",
     tint: "#00B4FF",
 
-    background: "#EEF2F7",
+    background: "#F2F2F7",
     foreground: "#0D1117",
 
-    card: "rgba(255, 255, 255, 0.90)",
+    card: "rgba(255, 255, 255, 0.92)",
     cardForeground: "#0D1117",
-    cardBorder: "rgba(0, 0, 0, 0.07)",
+    cardBorder: "rgba(0, 0, 0, 0.08)",
     cardSolid: "#FFFFFF",
 
     cardActive: "rgba(255, 255, 255, 0.98)",

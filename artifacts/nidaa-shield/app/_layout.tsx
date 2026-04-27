@@ -13,6 +13,7 @@ import { I18nManager, Platform, StatusBar, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AppToastBridge } from "@/components/AppToast";
 import { DialogProvider, ImperativeDialogBridge } from "@/components/Dialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeToast } from "@/components/ThemeToast";
@@ -96,6 +97,7 @@ function ThemedShell() {
               <RootLayoutNav />
             </OnboardingGate>
             <ThemeToast />
+            <AppToastBridge />
           </VpnProvider>
         </ImperativeDialogBridge>
       </DialogProvider>

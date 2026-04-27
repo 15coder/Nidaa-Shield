@@ -21,6 +21,7 @@ import {
   stopVpnService,
   type VpnStats as NativeVpnStats,
 } from "nidaa-vpn";
+import { showAppToast } from "@/components/AppToast";
 import { showDialog } from "@/components/Dialog";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -39,6 +40,7 @@ export interface ModeDefinition {
   longDescription: string;
   primaryDns: string;
   secondaryDns?: string;
+  dohEndpoint: string;
   protocol: "DNS" | "DoH" | "DoT";
   iconName:
     | "shield-checkmark"
@@ -52,44 +54,48 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
   smart: {
     id: "smart",
     title: "الدرع الذكي",
-    shortDescription: "حظر الإعلانات والتتبع على مستوى النظام",
+    shortDescription: "حظر الإعلانات والبرمجيات الخبيثة ومتتبعي البيانات",
     longDescription:
-      "حظر الإعلانات على مستوى النظام بأكمله — بما فيها إعلانات تطبيقات التواصل ومنع تتبع البيانات بتقنية DNS Sinkholing.",
+      "حظر الإعلانات والبرمجيات الخبيثة. تصفية المواقع والتطبيقات من الإعلانات المزعجة وأدوات التتبع لضمان تصفح نظيف وسريع.",
     primaryDns: "94.140.14.14",
     secondaryDns: "94.140.15.15",
-    protocol: "DNS",
+    dohEndpoint: "https://dns.adguard-dns.com/dns-query",
+    protocol: "DoH",
     iconName: "shield-checkmark",
   },
   gaming: {
     id: "gaming",
     title: "توربو الألعاب",
-    shortDescription: "DNS سريع يقلّل تأخير الاستعلامات للألعاب",
+    shortDescription: "سرعة قصوى واستجابة فورية لأفضل تجربة لعب",
     longDescription:
-      "خادم DNS عالي السرعة من Cloudflare (1.1.1.1) لتقليل زمن استعلام النطاقات أثناء اللعب — مفيد لتسريع تحميل الموارد دون تغيير مسار الاتصال نفسه.",
+      "سرعة قصوى واستجابة فورية. يعتمد على أسرع الخوادم لتقليل الـ Ping وضمان استقرار الاتصال أثناء اللعب أونلاين بدون لاغ.",
     primaryDns: "1.1.1.1",
     secondaryDns: "1.0.0.1",
-    protocol: "DNS",
+    dohEndpoint: "https://one.one.one.one/dns-query",
+    protocol: "DoH",
     iconName: "game-controller",
   },
   family: {
     id: "family",
     title: "حارس العائلة",
-    shortDescription: "حجب المحتوى غير اللائق والمواقع الضارة",
+    shortDescription: "حماية المحتوى والرقابة الأبوية للأسرة",
     longDescription:
-      "حجب فوري للمحتوى غير اللائق والمواقع الضارة عبر CleanBrowsing لضمان بيئة تصفح آمنة للأسرة.",
-    primaryDns: "185.228.168.168",
-    secondaryDns: "185.228.169.168",
-    protocol: "DNS",
+      "حماية المحتوى والرقابة الأبوية. حظر تلقائي للمواقع الإباحية وغير اللائقة مع تفعيل ميزة البحث الآمن في يوتيوب وجوجل.",
+    primaryDns: "94.140.14.15",
+    secondaryDns: "94.140.15.16",
+    dohEndpoint: "https://family.adguard-dns.com/dns-query",
+    protocol: "DoH",
     iconName: "people",
   },
   military: {
     id: "military",
     title: "الخصوصية العسكرية",
-    shortDescription: "تشفير DNS بروتوكول HTTPS لمنع التتبع",
+    shortDescription: "تشفير فائق ومنع التجسس والتتبع الرقمي",
     longDescription:
-      "تشفير كامل لطلبات الـ DNS عبر بروتوكول DNS-over-HTTPS لمنع مزود الخدمة من تتبع نشاطك.",
-    primaryDns: "1.1.1.1",
-    secondaryDns: "1.0.0.1",
+      "تشفير فائق ومنع التجسس. استخدام أعلى معايير التشفير العالمي لإخفاء هويتك الرقمية ومنع أي طرف ثالث من تتبع نشاطك.",
+    primaryDns: "9.9.9.9",
+    secondaryDns: "149.112.112.112",
+    dohEndpoint: "https://dns.quad9.net/dns-query",
     protocol: "DoH",
     iconName: "lock-closed",
   },
@@ -100,6 +106,7 @@ export const MODES: Record<Exclude<ShieldMode, null>, ModeDefinition> = {
     longDescription:
       "يستخدم خادم DNS الذي حدّدته يدوياً من شاشة الإعدادات > خوادم DNS مخصّصة.",
     primaryDns: "0.0.0.0",
+    dohEndpoint: "https://cloudflare-dns.com/dns-query",
     protocol: "DNS",
     iconName: "construct",
   },
@@ -265,6 +272,7 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
     (mode: Exclude<ShieldMode, null>) => {
       let primaryDns: string;
       let secondaryDns: string | undefined;
+      let dohEndpoint: string;
       let title: string;
 
       if (mode === "custom") {
@@ -275,22 +283,24 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
         primaryDns = sel.primary;
         secondaryDns = sel.secondary;
         title = sel.name || MODES.custom.title;
+        dohEndpoint = MODES.custom.dohEndpoint;
       } else {
         const def = MODES[mode];
         primaryDns = def.primaryDns;
         secondaryDns = def.secondaryDns;
+        dohEndpoint = def.dohEndpoint;
         title = def.title;
       }
 
-      // Military mode ALWAYS uses DoH — that's its core promise.
-      // Other modes follow the user setting.
-      const useDoH = mode === "military" ? true : settings.useDoH;
+      // All built-in modes use DoH. Custom mode respects the user setting.
+      const useDoH = mode === "custom" ? settings.useDoH : true;
 
       return {
         sessionName: title,
         primaryDns,
         secondaryDns: secondaryDns ?? null,
         useDoH,
+        dohEndpoint,
         modeId: mode,
         blocklist: settings.blocklist,
         whitelist: settings.whitelist,
@@ -365,10 +375,24 @@ export function VpnProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        const modeTitle = mode === "custom"
+          ? (settings.customDnsServers.find(c => c.id === settings.selectedCustomDnsId)?.name ?? MODES.custom.title)
+          : MODES[mode].title;
+
         setActiveModeState(mode);
         setIsConnected(true);
         // Reset uptime so switching between modes restarts the counter.
         setUptimeSeconds(0);
+
+        // Success toast
+        showAppToast({
+          title: `تم تفعيل ${modeTitle} بنجاح`,
+          subtitle: "أنت الآن محمي تماماً",
+          icon: "shield-checkmark",
+          accentLight: "#1B7A4B",
+          accentDark: "#2ECC71",
+          duration: 3200,
+        });
 
         // Success haptic — long, rich pattern so user feels "the shield is up".
         if (Platform.OS !== "web" && settings.hapticsEnabled) {

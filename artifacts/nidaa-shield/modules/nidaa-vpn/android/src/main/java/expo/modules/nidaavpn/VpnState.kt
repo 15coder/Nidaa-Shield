@@ -27,6 +27,7 @@ object VpnState {
   @Volatile var primaryDns: String = "1.1.1.1"
   @Volatile var secondaryDns: String? = null
   @Volatile var useDoH: Boolean = false
+  @Volatile var dohEndpoint: String = "https://cloudflare-dns.com/dns-query"
   @Volatile var blocklist: Set<String> = emptySet()
   @Volatile var whitelist: Set<String> = emptySet()
   @Volatile var excludedApps: Set<String> = emptySet()

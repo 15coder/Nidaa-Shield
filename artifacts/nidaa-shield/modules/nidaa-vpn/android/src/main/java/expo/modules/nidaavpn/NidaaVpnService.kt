@@ -35,6 +35,7 @@ class NidaaVpnService : VpnService() {
     const val EXTRA_USE_DOH = "useDoH"
     const val EXTRA_NAME = "name"
     const val EXTRA_MODE_ID = "modeId"
+    const val EXTRA_DOH_ENDPOINT = "dohEndpoint"
     const val EXTRA_BLOCKLIST = "blocklist"
     const val EXTRA_WHITELIST = "whitelist"
     const val EXTRA_EXCLUDED = "excluded"
@@ -59,13 +60,14 @@ class NidaaVpnService : VpnService() {
     val primary: String,
     val secondary: String,
     val useDoH: Boolean,
+    val dohEndpoint: String,
   )
 
   private val QUICK_MODES = listOf(
-    QuickMode("smart", "ذكي", "94.140.14.14", "94.140.15.15", false),
-    QuickMode("gaming", "ألعاب", "1.1.1.1", "1.0.0.1", false),
-    QuickMode("family", "عائلة", "94.140.14.15", "94.140.15.16", false),
-    QuickMode("military", "خصوصية", "1.1.1.1", "1.0.0.1", true),
+    QuickMode("smart",    "ذكي",      "94.140.14.14", "94.140.15.15",    true, "https://dns.adguard-dns.com/dns-query"),
+    QuickMode("gaming",   "ألعاب",    "1.1.1.1",      "1.0.0.1",         true, "https://one.one.one.one/dns-query"),
+    QuickMode("family",   "عائلة",    "94.140.14.15", "94.140.15.16",    true, "https://family.adguard-dns.com/dns-query"),
+    QuickMode("military", "خصوصية",   "9.9.9.9",      "149.112.112.112", true, "https://dns.quad9.net/dns-query"),
   )
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -78,6 +80,7 @@ class NidaaVpnService : VpnService() {
     val primary = intent?.getStringExtra(EXTRA_PRIMARY) ?: "1.1.1.1"
     val secondary = intent?.getStringExtra(EXTRA_SECONDARY)
     val useDoH = intent?.getBooleanExtra(EXTRA_USE_DOH, false) ?: false
+    val dohEndpoint = intent?.getStringExtra(EXTRA_DOH_ENDPOINT) ?: "https://cloudflare-dns.com/dns-query"
     val name = intent?.getStringExtra(EXTRA_NAME) ?: "نداء شايلد"
     val modeId = intent?.getStringExtra(EXTRA_MODE_ID)
     val blocklist = intent?.getStringArrayExtra(EXTRA_BLOCKLIST)?.toSet() ?: emptySet()
@@ -87,6 +90,7 @@ class NidaaVpnService : VpnService() {
     VpnState.primaryDns = primary
     VpnState.secondaryDns = secondary
     VpnState.useDoH = useDoH
+    VpnState.dohEndpoint = dohEndpoint
     VpnState.blocklist = blocklist
     VpnState.whitelist = whitelist
     VpnState.excludedApps = excluded
@@ -213,7 +217,7 @@ class NidaaVpnService : VpnService() {
         // forward
         val started = System.currentTimeMillis()
         val resp = if (VpnState.useDoH) {
-          val r = doh.resolve(parsed.rawQueryPayload)
+          val r = doh.resolve(parsed.rawQueryPayload, VpnState.dohEndpoint)
           if (r != null) VpnState.dohQueries.incrementAndGet()
           r
         } else {
@@ -353,6 +357,7 @@ class NidaaVpnService : VpnService() {
         putExtra(EXTRA_PRIMARY, m.primary)
         putExtra(EXTRA_SECONDARY, m.secondary)
         putExtra(EXTRA_USE_DOH, m.useDoH)
+        putExtra(EXTRA_DOH_ENDPOINT, m.dohEndpoint)
         putExtra(EXTRA_NAME, m.label)
         putExtra(EXTRA_MODE_ID, m.id)
         // Carry over current blocklist/whitelist/excluded so the user's
