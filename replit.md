@@ -28,6 +28,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - In-app screens: home (modes only — engine banner removed), `/stats` (live counters, accessible from Settings → Tools), `/speed-test` (compares Cloudflare/Google/AdGuard/Quad9/CleanBrowsing via DoH, accessible from Settings → Tools), `/settings` (theme, tools, blocklist, whitelist, custom-dns, excluded-apps, advanced, system features).
   - Standalone `package.json` (no workspace catalog refs) so EAS Build works directly from `artifacts/nidaa-shield` as base directory. Built via EAS Build → GitHub (`15coder/Nidaa-Shield`, branch `main`, profile `preview`). Cannot run in Expo Go — requires custom dev client / EAS APK.
   - iOS implementation is a no-op stub; Android is the only supported target.
+  - **Daily protection reminder notification**: `services/NotificationService.ts` — schedules a single daily notification at 9:00 AM using `expo-notifications@~0.32.16`. Requests POST_NOTIFICATIONS permission on first launch (via `scheduleDailyProtectionReminder()` called in `_layout.tsx` after settings hydration). Uses AsyncStorage key `@nidaa-shield/notif-scheduled-v1` to schedule only once. Notification is in Arabic: "لا تنسَ تفعيل حماية نداء شايلد اليوم — ابقَ آمناً على الإنترنت!".
+  - **SalatCard "لاحقاً"**: tapping "لاحقاً" (Later) dismisses the card for the current session only and does NOT write to AsyncStorage, so the card reappears on the next app open. Tapping "نعم" saves `todayKey()` and hides the card for the rest of the day.
 
 ## Key Commands
 

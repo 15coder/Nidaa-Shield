@@ -99,7 +99,6 @@ export function SalatCard() {
     if (Platform.OS !== "web") {
       Haptics.selectionAsync().catch(() => {});
     }
-    try { await AsyncStorage.setItem(STORAGE_KEY, todayKey()); } catch {}
     dismiss();
   };
 

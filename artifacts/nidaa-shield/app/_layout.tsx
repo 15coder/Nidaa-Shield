@@ -20,6 +20,7 @@ import { ThemeToast } from "@/components/ThemeToast";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { VpnProvider } from "@/contexts/VpnContext";
 import { useColors } from "@/hooks/useColors";
+import { scheduleDailyProtectionReminder } from "@/services/NotificationService";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -85,6 +86,13 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 function ThemedShell() {
   const colors = useColors();
   const { hydrated } = useSettings();
+
+  useEffect(() => {
+    if (hydrated) {
+      scheduleDailyProtectionReminder();
+    }
+  }, [hydrated]);
+
   if (!hydrated) return null;
   return (
     <GestureHandlerRootView
