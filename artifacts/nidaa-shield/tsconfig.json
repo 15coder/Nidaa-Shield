@@ -6,6 +6,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "nidaa-vpn": [
+        "./modules/nidaa-vpn"
       ]
     }
   },
