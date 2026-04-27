@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
@@ -10,9 +11,21 @@ export function Header() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const pulse = useRef(new Animated.Value(1)).current;
 
   const topPad =
     Platform.OS === "web" ? Math.max(insets.top, 28) : insets.top + 14;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
 
   return (
     <View style={[styles.wrap, { paddingTop: topPad }]}>
@@ -31,16 +44,25 @@ export function Header() {
           >
             <Ionicons name="settings-outline" size={18} color={colors.foreground} />
           </Pressable>
-          <View
-            style={[styles.statusBadge, { backgroundColor: colors.primarySoft }]}
+
+          {/* AI Assistant button */}
+          <Pressable
+            accessibilityLabel="مساعد نداء شايلد"
+            onPress={() => router.push("/assistant")}
+            style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
           >
-            <View
-              style={[styles.statusDot, { backgroundColor: colors.primary }]}
-            />
-            <Text style={[styles.statusBadgeText, { color: colors.primary }]}>
-              نداء-شايلد
-            </Text>
-          </View>
+            <Animated.View style={{ transform: [{ scale: pulse }] }}>
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.assistantBtn}
+              >
+                <Ionicons name="sparkles" size={15} color="#FFFFFF" />
+                <Text style={styles.assistantLabel}>المساعد</Text>
+              </LinearGradient>
+            </Animated.View>
+          </Pressable>
         </View>
 
         <Image
@@ -79,22 +101,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  statusBadge: {
+  assistantBtn: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    gap: 5,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
     borderRadius: 999,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusBadgeText: {
+  assistantLabel: {
     fontFamily: "Cairo_700Bold",
-    fontSize: 11,
-    letterSpacing: 0.5,
+    fontSize: 11.5,
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
   },
 });

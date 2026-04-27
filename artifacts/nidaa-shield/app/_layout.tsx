@@ -51,6 +51,7 @@ function RootLayoutNav() {
       <Stack.Screen name="settings/whitelist" />
       <Stack.Screen name="settings/excluded-apps" />
       <Stack.Screen name="settings/advanced" />
+      <Stack.Screen name="assistant" />
     </Stack>
   );
 }

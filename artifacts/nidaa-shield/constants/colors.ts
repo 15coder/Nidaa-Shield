@@ -135,35 +135,35 @@ const colors = {
     text: "#0D1117",
     tint: "#00B4FF",
 
-    background: "#F2F2F7",
+    background: "#FFFFFF",
     foreground: "#0D1117",
 
-    card: "rgba(255, 255, 255, 0.92)",
+    card: "rgba(247, 249, 252, 0.95)",
     cardForeground: "#0D1117",
-    cardBorder: "rgba(0, 0, 0, 0.08)",
-    cardSolid: "#FFFFFF",
+    cardBorder: "rgba(0, 0, 0, 0.07)",
+    cardSolid: "#F7F9FC",
 
-    cardActive: "rgba(255, 255, 255, 0.98)",
+    cardActive: "rgba(255, 255, 255, 1)",
     cardActiveBorder: "rgba(0, 180, 255, 0.55)",
-    cardActiveGlow: "rgba(0, 180, 255, 0.45)",
+    cardActiveGlow: "rgba(0, 180, 255, 0.40)",
 
     primary: "#00B4FF",
     primaryDark: "#0090CC",
     primaryForeground: "#FFFFFF",
-    primaryGlow: "rgba(0, 180, 255, 0.40)",
-    primarySoft: "rgba(0, 180, 255, 0.12)",
+    primaryGlow: "rgba(0, 180, 255, 0.35)",
+    primarySoft: "rgba(0, 180, 255, 0.10)",
 
-    secondary: "#E6EBF2",
+    secondary: "#EDF2FA",
     secondaryForeground: "#1A2332",
 
-    muted: "#DDE3ED",
+    muted: "#E8EDF6",
     mutedForeground: "#64748B",
 
-    accent: "#D8E0EC",
+    accent: "#EAF0F9",
     accentForeground: "#1A2332",
 
     silver: "#A8B4C4",
-    silverGlow: "rgba(168, 180, 196, 0.35)",
+    silverGlow: "rgba(168, 180, 196, 0.30)",
 
     destructive: "#C8102E",
     destructiveForeground: "#FFFFFF",
@@ -171,10 +171,10 @@ const colors = {
     success: "#1B7A4B",
     successForeground: "#FFFFFF",
 
-    border: "#D8E0EC",
-    input: "#D8E0EC",
+    border: "#E4EAF4",
+    input: "#EDF2FA",
 
-    overlay: "rgba(10, 14, 20, 0.50)",
+    overlay: "rgba(10, 14, 20, 0.45)",
 
     statusBarStyle: "dark-content" as "dark-content" | "light-content",
   },
