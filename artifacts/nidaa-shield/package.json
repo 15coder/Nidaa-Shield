@@ -9,7 +9,9 @@
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "doctor": "npx --yes expo-doctor@latest",
-    "clean": "rm -rf node_modules .expo dist android ios && pnpm install && pnpm exec expo start --clear"
+    "clean": "rm -rf node_modules .expo dist android ios && pnpm install && pnpm exec expo start --clear",
+    "ota:preview": "pnpm exec eas update --branch preview --auto",
+    "ota:production": "pnpm exec eas update --branch production --auto"
   },
   "expo": {
     "autolinking": {
@@ -31,6 +33,7 @@
     "expo-notifications": "^0.32.16",
     "expo-router": "~6.0.17",
     "expo-splash-screen": "~31.0.12",
+    "expo-updates": "~29.0.16",
     "expo-web-browser": "~15.0.10",
     "react": "19.1.0",
     "react-native": "0.81.5",

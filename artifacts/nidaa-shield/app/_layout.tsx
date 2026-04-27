@@ -21,6 +21,7 @@ import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { VpnProvider } from "@/contexts/VpnContext";
 import { useColors } from "@/hooks/useColors";
 import { scheduleDailyProtectionReminder } from "@/services/NotificationService";
+import { checkForOtaUpdate } from "@/services/UpdateService";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -90,6 +91,7 @@ function ThemedShell() {
   useEffect(() => {
     if (hydrated) {
       scheduleDailyProtectionReminder();
+      checkForOtaUpdate();
     }
   }, [hydrated]);
 
